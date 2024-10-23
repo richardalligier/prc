@@ -9,10 +9,13 @@ make download && make cleantrajectories && make features && make submissions
 # Technical Aspects
 In this Section you will find technical aspects and motivations for the code in this repository.
 ## Filtering and Smoothing Trajectories
-Informations on the weight hides inside the kinematic of the aircraft. Thus, we want to have a good fine grain vision of its kinematic, leading us to filter and smooth the trajectory.
+Informations on the weight hides inside the kinematic of the aircraft. Thus, we want to have a good fine grain vision of its kinematic, leading us to filter and smooth the trajectories.
 ### Filtering Trajectory (`filter_trajs.py`)
+We first try to remove measurements that are repeated from one time step to the next. Unfortunately, we do not know which measurement is repeated on the next time step but we can compute a proxy criteria by knowing which variables are said to be updated together in [ADS-B](https://mode-s.org/decode/content/quickstart.html). Then, to remove erroneous measurements, we coded our own version of the `FilterDerivative` found in the [Traffic](https://github.com/xoolive/traffic) library. We took care of not interpolating data at all. In fact we even discarded "isolated" points, points which are spaced more than 20 seconds from any other point.
+
+Our "repeated measurements" filter might remove legit measurements, especially in phase where measurements are expected to be constant like the cruise phase for instance. However, this should not be hurtful as this phase last long and is not that "dense" information-wise. Conversely, this filter will work well on evolutive phase like the climbing phase which will be more "dense" information-wise for our problem.
 ### Smoothing Trajectory (`interpolate.py`)
-The smoothing is done using smoothing splines, and we are careful about not interpolating in area where there are not points. More specifically, we will not interpolated between two points spaced by more than 20 seconds.
+The smoothing is done using cubic smoothing splines of the [csaps](https://csaps.readthedocs.io/en/latest/) library. We are careful about not interpolating in area where there are not points. More specifically, we will not interpolated between two points spaced by more than 20 seconds.
 ## Building Features
 ### Correcting dateTimes (`correct_dates.py`)
 When looking at trajectories, the `arrival_time` variable is not always correct, it is the same for the departure.
@@ -23,7 +26,7 @@ We expect that thunder and fog to be related to holding patterns. If the crew ca
 ### Features Extracted from the trajectories
 One difficulty to extract features from trajectories is that a given feature should represent the same concept from one trajectory to an other, a concept hopefully related to the TOW.
 #### Features for the climbing Phase (`correct_dates.py`)
-Here, trajectories are "aligned" by considering altitude slices: we expect that the ROCD taken between 10500ft and 11500ft from one flight, capturing the concept "climbing performance at 10000ft", regardless when it happens during the flight. We do this for 48 slices of 1000ft height, starting from [-500ft,500ft] to [46500ft,47500ft]. Considering points inside a given slice, we compute our features whihch would simply statistics on points in this slice: 
+Here, trajectories are "aligned" by considering altitude slices: for instance we compute a feature for the observed ROCD between 10500ft and 11500ft, capturing the concept "climbing performance at 10000ft" hopefully. Of course, this climbing segment can happen later in some flights, changing its "nominal" value. We hope capturing this by adding a temporal feature for the slice. We compute all these for 48 slices of 1000ft height, starting from [-500ft,500ft] to [46500ft,47500ft]. In details, considering points inside a given slice, we compute our features by doing statistics on points in this slice: 
 - $\mathrm{Cardinal}\left(\mathrm{slice}\right)$ - number of points in the slice
 - $\mathrm{median}_{\mathrm{i}\in\mathrm{slice}}~\mathrm{ROCD}_i$
 - $max_j ROCD_j - min_i ROCD_i$
@@ -41,22 +44,25 @@ We do that for all the 48 slices, creating us hundreds of features. The last fea
 
 One can proceed similarly on the descent phase but it did not provide much improvement in our test, so we did not used it in the end. The reason for this is unclear, maybe the variability is greater in the descent phase than in the climb phase, maybe the descent phase is at the end of the flight, so the relation with the TOW is looser.
 #### Features for the Whole Flight Temporal Profile (`correct_dates.py`)
-Here, trajectories are "aligned" by considering scaled temporal slices computed using $\left({\mathrm{timestamp}_i-t\_{adep}}\right)/\left({t\_{ades}-t\_{adep}}\right)$ which can be seen as the completion percentage, the slice [5%,10%] is at the begining of the flight whereas [90%,95%] is at the end of the flight. Due to the scaling, the first part and the last part are not well "aligned": considering two flights, for instance a 1-hour flight and a 5-hour flight, the statistics computed on the [5%-10%] slice, does not represent the same concept as they are likely not in the same flight phase. However, statistics in the [45%;50%] slice represent somewhat the same concept, they are both in the same flight phase and mid-flight. These "mis-alignements" on the firsts slices might not be too critical as we already have features dealing with the climbing phase.
+Here, trajectories are "aligned" by considering scaled temporal slices computed using $\left({\mathrm{timestamp}_i-t\_{adep}}\right)/\left({t\_{ades}-t\_{adep}}\right)$ which can be seen as the completion percentage, the slice [5%,10%] is at the begining of the flight whereas [90%,95%] is at the end of the flight. Due to the scaling, the first part and the last part are not well "aligned": considering two flights, for instance a 1-hour flight and a 5-hour flight, the statistics computed on the [5%-10%] slice does not represent the same concept as they are likely not in the same flight phase. However, statistics in the [45%;50%] slice represent somewhat the same concept, they are both in the same flight phase and mid-flight. These "mis-alignements" on the firsts slices might not be too critical as we already have features dealing with the climbing phase.
 Considering points inside a given slice, we compute our features whihch would simply statistics on points in this slice: 
+- ${t\_{ades}-t\_{adep}}$ - the scaling factor and flight duration
+- $\mathrm{Cardinal}\left(\mathrm{slice}\right)$ - number of points in the slice
+- $\mathrm{median}_{\mathrm{i}\in\mathrm{slice}}~\mathrm{Mach}_i$
+- $\mathrm{median}_{\mathrm{i}\in\mathrm{slice}}~\mathrm{altitude}_i$
+- $\mathrm{altitude}_{last(slice)}-\mathrm{altitude}\_{first(slice)}$
+
+We do that for 20 slices starting from the slice [0,5%] to the slice [95%,100%]. These features are mostly designed to capture the information in the cruise phase.
 
 ## Training the Model
-The model was trained using [LightGBM](https://lightgbm.readthedocs.io/en/stable/index.html)
-
-MTOW-EOW Scaling
-
-Random Search
-
-10 random seed
+The model was trained using [LightGBM](https://lightgbm.readthedocs.io/en/stable/index.html).MTOW-EOW Scaling. Hyperparameters were obtained by doing a random search implemented in `optimparam.py`. Using these hyperparameters, we built 10 models using 10 different random seeds. The final model is the average of these 10 models with 50000 trees each.
 
 # Main External Softwares
 This work builds on some external software:
 - [LightGBM](https://lightgbm.readthedocs.io/en/stable/index.html)
 - [scikit-learn](https://scikit-learn.org/stable/)
+- [csaps](https://csaps.readthedocs.io/en/latest/)
+- [Traffic](https://github.com/xoolive/traffic)
 - [OpenAP](https://github.com/TUDelft-CNS-ATM/openap)
 - [Pitot](https://github.com/open-aviation/pitot)
 # External Data
