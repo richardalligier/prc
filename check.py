@@ -18,8 +18,12 @@ def compare(a,b):
     sb = set(bf)
     print(sa-sb,sb-sa)
     names = list(sa.intersection(sb))
-    # print((af[names].isna().sum()-bf[names].sum()))
-#    print(af.Cruisemach_1.isna().sum(),bf.Cruisemach_1.isna().sum())
+    # print(af["flight_id"])
+    # print(bf["flight_id"])
+    print((bf["flight_id"]==af["flight_id"]).all())
+    print((af[names].isna().sum()-bf[names].isna().sum()))
+    print(af.Cruisemach_7.isna().sum(),bf.Cruisemach_7.isna().sum())
+    # print(af.Cruisemach_1.isna().sum(),bf.Cruisemach_1.isna().sum())
     print((af[names].select_dtypes(include=[np.number])-af[names].select_dtypes(include=[np.number])).abs().max(axis=None))
     mask = np.logical_not(af[names].isna().values)
     print(mask.shape)
@@ -32,5 +36,5 @@ def compare(a,b):
 for root, dirs, files in os.walk(folderref):
     for name in files:
         fname = os.path.join(root, name)
-        if "cruise" not in fname and "challenge_set" not in fname and fname.endswith(".parquet"):
+        if "cruise" in fname and "challenge_set" in fname and fname.endswith(".parquet"):
             compare(fname,replace(fname))
