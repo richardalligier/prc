@@ -61,6 +61,7 @@ The model was trained using [LightGBM](https://lightgbm.readthedocs.io/en/stable
 This work builds on some external software:
 - [LightGBM](https://lightgbm.readthedocs.io/en/stable/index.html)
 - [scikit-learn](https://scikit-learn.org/stable/)
+- [sklego](https://github.com/koaning/scikit-lego)
 - [csaps](https://csaps.readthedocs.io/en/latest/)
 - [Traffic](https://github.com/xoolive/traffic)
 - [OpenAP](https://github.com/TUDelft-CNS-ATM/openap)
