@@ -65,7 +65,8 @@ class AllCategorical:
         return []
 
 def round_to_hour(time):
-    return (2*(time.dt.hour+time.dt.minute/60)).round().astype(np.int32)
+#    return (2*(time.dt.hour+time.dt.minute/60)).round().astype(np.int32)
+    return 60 * time.dt.hour + time.dt.minute#)).round().astype(np.int32)
 
 class Flights:
     def __init__(self, config, what):
@@ -77,6 +78,8 @@ class Flights:
         df=add_localtime(airports,df,"actual_offblock_time","arrival_time")
         df["local_hour_adep"]=round_to_hour(df["local_actual_offblock_time"])
         df["local_hour_ades"]=round_to_hour(df["local_arrival_time"])
+        # print(df["local_hour_adep"].describe())
+        # raise Exception
         weather = pd.read_parquet(os.path.join(config.FOLDER_DATA,"weather",f"{what}.parquet"))
         df = df.join(weather.set_index("flight_id"),on="flight_id",how="left")
         print(f"{df.shape=}")
@@ -91,11 +94,11 @@ class Flights:
 
     @sortedout
     def categorical_features(self):
-        return ["adep","ades","airline","aircraft_type","wtc","country_code_ades","country_code_adep","dayofweek","local_hour_ades","local_hour_adep","weekofyear"]#,#"callsign",
+        return ["adep","ades","airline","aircraft_type","wtc","country_code_ades","country_code_adep","dayofweek"]#,#"callsign",
     @sortedout
     def numeric_features_not_scaled(self):
         aptvar = [f"{v}_{apt}" for apt in ["ades","adep"] for v in ["drct","tmpf","sknt","elevation_ft","vsby","latitude_deg","longitude_deg"]]#"alti","drct","sknt","tmpf"]]
-        return aptvar
+        return ["local_hour_ades","local_hour_adep","weekofyear"]+aptvar
     @sortedout
     def numeric_features(self):
         #return ["arrival_minutes","actual_offblock_minutes"]#"flight_duration","taxiout_time","flown_distance","arrival_minutes","actual_offblock_minutes"]
