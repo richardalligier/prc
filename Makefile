@@ -67,15 +67,12 @@ WEATHERS = $(foreach flight,$(FLIGHT_FILES), $(FOLDER_WEATHER)/$(flight).parquet
 THUNDERS = $(foreach flight,$(FLIGHT_FILES), $(FOLDER_THUNDER)/$(flight).parquet)
 
 
-download: $(FLIGHTS) $(foreach f,$(shell mc ls dc24/competition-data  | rev | cut -d' ' -f1 | rev | grep "parquet" | grep "2022-11-04"),$(FOLDER_RAW)/$(f))
-	mkdir -p $(FOLDER_DATA)/METARs
-	python3 download_METARs.py
+download: $(FLIGHTS) $(foreach f,$(shell mc ls dc24/competition-data  | rev | cut -d' ' -f1 | rev | grep "parquet" | grep "2022-01-01"),$(FOLDER_RAW)/$(f)) $(METARS)
 
 cleantrajectories: $(TRAJS)
 
-features: $(WEATHERS) $(THUNDERS)
-#$(CRUISES) $(MASSES)
-
+features: $(CRUISES) $(MASSES) $(WINDS)
+# $(WEATHERS) $(THUNDERS)
 #$(WEATHERS) $(THUNDERS) $(WINDS)
 
 submissions:
@@ -104,6 +101,8 @@ $(AIRPORTS): $(FLIGHTS)
 
 
 $(METARS): $(AIRPORTS)
+	mkdir -p $(FOLDER_DATA)/METARs
+	python3 download_metars.py
 	python3 metars_folder_to_parquet.py -metars_folder_in $(FOLDER_DATA)/METARs -metars_parquet_out $@
 
 $(FOLDER_WEATHER)/%.parquet: $(FOLDER_FLGT)/%.parquet $(AIRPORTS) $(METARS)

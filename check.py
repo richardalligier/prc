@@ -31,7 +31,12 @@ def compare(a,b):
     assert((af[names].values[mask]==bf[names].values[mask]).all())
 
 
-compare("/disk3/refprc/METARs.parquet","/disk3/refprc/METARsref.parquet")
+#compare("/disk3/refprc/METARs.parquet","/disk3/refprc/METARsref.parquet")
+#compare("/disk3/prc/METARs (copy).parquet","/disk3/prc/METARs.parquet")
+#compare("/disk3/prc/thunder1024/final_submission_set.parquet","/disk3/prc/thunder/final_submission_set.parquet")
+#compare("/disk3/prc/weather1024/final_submission_set.parquet","/disk3/prc/weather/final_submission_set.parquet")
+for f in ["classic__1e-2__20_cruise/final_submission_set","classic__1e-2__5_500_40_daltitude_1_-0.5_1_masses/final_submission_set","classic__1e-2_wind/final_submission_set"]:#"classic__1e-2_interpolated_trajectories"]:#"classic_filtered_trajectories"]:
+    compare(f"/disk3/refprc/{f}/2022-01-01.parquet",f"/disk3/prc/{f}/2022-01-01.parquet")
 
 # for root, dirs, files in os.walk(folderref):
 #     for name in files:

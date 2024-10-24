@@ -1,6 +1,4 @@
 from sklearn.base import BaseEstimator, TransformerMixin
-# import sklego
-# from sklego.preprocessing import IdentityTransformer
 import pandas as pd
 from sklearn.preprocessing import StandardScaler, MinMaxScaler, QuantileTransformer
 import numpy as np
@@ -17,8 +15,7 @@ class TargetIdentity:
         return df[self.yvar].values.copy(),None
     def inverse_transform(self, df, yrawpred):
         return yrawpred.copy()
-    # def predict_from_raw(self, df, yrawpred):
-    #     return self.inverse_transform(df, yrawpred)
+
 
 class TargetStandardScaler(TargetIdentity):
     def __init__(self, yvar):
@@ -68,7 +65,6 @@ class MassOewMtow(TargetScaleByGroup):
 
 class MassStandardScalerByAircraft(TargetScaleByGroup):
     def fit(self, df):
-        # dmass = pd.read_csv("aircraft_type_masses.csv")
         dmean = {}
         dscale = {}
         for val in df[self.by].unique():
@@ -102,7 +98,6 @@ class LearnMassStandardScalerByAircraft(TargetScaleByGroup):
         modelscale = make_pipeline(PolynomialFeatures(2),linear_model.LinearRegression()).fit(X,yscale)
         del Xb
         del X
-        # modelscale = linear_model.LinearRegression().fit(poly.fit_transform(X),yscale)
         for k in massdf.index:
             if k not in dmean:
                 # print(k)
@@ -114,66 +109,9 @@ class LearnMassStandardScalerByAircraft(TargetScaleByGroup):
                 print(dscale[k])
                 assert(dscale[k]>0)
                 assert(dmean[k]>0)
-        # import matplotlib.pyplot as plt
-        # plt.scatter(X[:,0],ymean)
-        # plt.scatter(X[:,0],Xb[:,1]+modelmean.predict(X))
-        # plt.show()
-        # plt.scatter(X[:,0],yscale)
-        # plt.scatter(X[:,0],modelscale.predict(X))
-        # plt.show()
-        # plt.scatter(ymean,y-modelscale.predict(X))
-        # # plt.scatter(X[:,0],yscale)
-        # plt.show()
-        # self.meanmodel =
-        # self.meanmodel =
         self.dmean = dmean
         self.dscale = dscale
 
-# class MassStandardScalerByAircraft(TargetScaleByGroup):
-#     def fit(self, df):
-#         # dmass = pd.read_csv("aircraft_type_masses.csv")
-#         dmean = {}
-#         dscale = {}
-#         for val in df[self.by].unique():
-#             mask = df[self.by].values == val
-#             assert(mask.sum()>10)
-#             y = df[self.yvar].values[mask]
-#             dmean[val] = np.mean(y)
-#             dscale[val] = np.std(y)
-#         self.dmean = dmean
-#         self.dscale = dscale
-
-
-    # def get_mtow(self,aircraft_type):
-    #     ac = self.dmass.query(f"{self.aircraft_type}==@aircraft_type")
-    #     assert ac.shape[0]==1
-    #     mtow = ac.mtow.values[0]
-    #     oew = ac.oew.values[0]
-    #     return (oew,mtow)
-    # def transform(self, df):#aircraft_type, tow):
-    #     res = np.empty_like(df[self.yvar].values)
-    #     res[:]=np.nan
-    #     w = res.copy()
-    #     self.dtrans = {}
-    #     for val in df[self.aircraft_type].unique():
-    #         # print(val)
-    #         mask = df[self.aircraft_type].values == val
-    #         oew, mtow = self.get_mtow(val)
-    #         y = (df[self.yvar].values[mask]-oew) / (mtow-oew)
-    #         res[mask]=y
-    #         w[mask] = (mtow-oew)
-    #         # self.dtrans[val]=QuantileTransformer().fit(y[:,None])
-    #         # res[mask] = self.dtrans[val].transform(y[:,None])[:,0]
-    #     return res, w**2
-    # def inverse_transform(self, df, yrawpred):
-    #     res = np.empty_like(yrawpred)
-    #     res[:]=np.nan
-    #     for val in df[self.aircraft_type].unique():
-    #         mask = df[self.aircraft_type].values == val
-    #         oew, mtow = self.get_mtow(val)
-    #         res[mask] = yrawpred[mask] * (mtow-oew) + oew
-    #         # res[mask] = self.dtrans[val].inverse_transform(normalized_tow[mask][:,None])[:,0] * self.get_mtow(val)
-    #     return res
 
 class GroupByTransformer(BaseEstimator, TransformerMixin):
     def __init__(self, transformer,synonym, by=None):
@@ -202,23 +140,13 @@ class GroupByTransformer(BaseEstimator, TransformerMixin):
 
     def transform(self, X, y = None):
         X = X.copy()[self.cols+[self.by]]
-        # df = X
-        # for ac in sorted(df.aircraft_type.unique()):
-        #     print(ac,df.query("aircraft_type==@ac").shape[0])
         for val in X[self.by].unique():
             mask = X[self.by]==val
             transformed = self.dtransformer[val].transform(X.loc[mask, self.cols])
             X.loc[mask, self.cols] = transformed
-        # df = X
-        # for ac in sorted(df.aircraft_type.unique()):
-        #     print(ac,df.query("aircraft_type==@ac").shape[0])
-        # raise Exception
         return X.loc[:, self.cols]
     def inverse_transform(self, X, y = None):
         X = X.copy()[self.cols+[self.by]]
-        # df = X
-        # for ac in sorted(df.aircraft_type.unique()):
-        #     print(ac,df.query("aircraft_type==@ac").shape[0])
         for val in X[self.by].unique():
             mask = X[self.by]==val
             transformed = self.dtransformer[val].inverse_transform(X.loc[mask, self.cols])
@@ -227,7 +155,7 @@ class GroupByTransformer(BaseEstimator, TransformerMixin):
     def get_feature_names_out(self,names):
         return [v for v in names if v!=self.by]
 
-def main():
+def main(): # main function just here to test the above classes
     import readers
     import utils
     from sklearn.preprocessing import StandardScaler, OrdinalEncoder

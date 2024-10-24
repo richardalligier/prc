@@ -32,16 +32,12 @@ def isvar(v):
 
 class FilterCstLatLon(filters.FilterBase):
     def apply(self,df):
-        # checktime(df)
         df = df.copy()
-        # print(df.shape)
         alt = df.altitude.values
         lat = df.latitude.values
         lon = df.longitude.values
-        isupdated = np.zeros(alt.shape,dtype=bool)
+        isupdated = np.zeros(alt.shape, dtype=bool)
         isupdated[1:] = np.logical_or(isvar(lat),isvar(lon))
-        # plt.plot(lat)
-        # plt.show()
         df.loc[np.logical_not(isupdated),["latitude","longitude"]]=np.nan
         return df
 
@@ -51,7 +47,6 @@ def compute_holes(t,inans):
     tf = pd.DataFrame({"tf":tnan}, dtype=np.float64).ffill().values[:,0]
     tb = pd.DataFrame({"tb":tnan}, dtype=np.float64).bfill().values[:,0]
     dt = 10000. * np.ones(tnan.shape[0],dtype=np.float64)
-    # print(tf.shape,dt.shape)
     dt[:-1] = np.minimum(dt[:-1],tb[1:]-tnan[:-1])
     dt[1:] = np.minimum(dt[1:],tnan[1:]-tf[:-1])
     return dt
@@ -59,19 +54,12 @@ def compute_holes(t,inans):
 class FilterIsolated(filters.FilterBase):
     def apply(self,df):
         df = df.copy()
-        # return df
         lvar = [x for x in list(df) if x not in ["timestamp","icao24","flight_id"]]
         df["t"] = ((df.timestamp - df.timestamp.iloc[0]) / pd.to_timedelta(1, unit="s")).values.astype(np.float64)
         for v in lvar:
             dt = compute_holes(df["t"],np.isnan(df[v].values))
-            # if v=="altitude":
-            #     plt.scatter(df.timestamp,dt)
-            #     plt.show()
-            # print(dt.shape)
-            # print(df[v].shape)
             df[v] = df[v].mask(dt > 20)
             df[v] = df[v].mask(np.isnan(dt))
-        # checktime(df)
         return df.drop(columns=["t"])
 
 
@@ -81,7 +69,6 @@ class FilterCstPosition(filters.FilterBase):
         df = df.copy()
         if df.shape[0]<=1:
             return df
-        # print(df.shape)
         alt = df.altitude.values
         lat = df.latitude.values
         lon = df.longitude.values
@@ -163,21 +150,15 @@ class MyFilterDerivative(filters.FilterBase):
         for column, params in self.columns.items():
             if column not in data.columns:
                 continue
-            # print(data.shape)
             nanmask = np.isnan(data[column].values)
             index = data.index[np.logical_not(nanmask)]
             val = data[column].values[np.logical_not(nanmask)]
             timediff = data.loc[np.logical_not(nanmask),self.time_column].diff().dt.total_seconds().values[1:]
-            # print(timediff.shape)
-            # print(val.shape)
-            # print(data.shape)
-            # print(timediff)
-            # raise Exception
             if column == "track":
                 val = np.unwrap(val,period=360)
             diff1val = val[1:]-val[:-1]
             diff1 = np.abs(diff1val)
-            diff2 =np.abs(diff1val[1:]-diff1val[:-1])# diff1val.diff().abs()
+            diff2 =np.abs(diff1val[1:]-diff1val[:-1])
 
             deriv1 = diff1 / timediff
             deriv2 = 2 * diff2 / (timediff[1:]+timediff[:-1])
@@ -190,22 +171,6 @@ class MyFilterDerivative(filters.FilterBase):
             killv = np.zeros(val.shape[0])
             killv[:-1]+=spikev
             killv[1:]+=spikev
-            # np.bitwise_or(
-            #     (deriv1 >= params["first"]), (deriv2 >= params["second"])
-            # )
-            # print(type(spike))
-            # print(spike)
-            # raise Exception
-            #indextonan = pd.Series(np.ones(data.shape[0],dtype=bool),index=data.index)
-            #indextonan.iloc[spike.index] = spike
-            # if column == "altitude":
-            #     print(np.sum(killa>=3))
-            #     # plt.plot(val)
-            #     plt.plot(deriv1)
-            #     plt.plot((killa>=3)*20000)
-            #     plt.show()
-            # print(spike)
-            # print(spike.index[spike])
             data.loc[index[np.logical_or(killa>=2,killv>=2)], column] = np.nan
 
         return data

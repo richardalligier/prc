@@ -43,8 +43,8 @@ for i,line in af.iterrows():
     ltz.append(str(tz))
 af["time_zone"] = ltz
 af["time_zone"]=af["time_zone"].astype("string")
-print(af["time_zone"])
-print(af.dtypes)
+#print(af["time_zone"])
+#print(af.dtypes)
 
 af.to_parquet(args.a_out,index=False)
 

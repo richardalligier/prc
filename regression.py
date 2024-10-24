@@ -91,11 +91,23 @@ def preprocessor_flights(feat):
             ("scaler", IdentityTransformer()),
         ]
     )
+    # synonym={
+    #     "B752":"B763",
+    #     "B773":"B77W",
+    #     "E290":"E195",
+    #     "A310":"A319",
+    #     }
+    # scale_by_group = "aircraft_type"
+    # numeric_transformer = Pipeline(
+    #     steps=[
+    #         ("scaler", GroupByTransformer(StandardScaler,synonym,by=scale_by_group)),#
+    #     ]
+    # )
 
     preprocessor = ColumnTransformer(
         transformers=[
             ("cat", categorical_transformer, categorical_features),
-            ("numeric", numeric_transformer, numeric_features),
+            ("numeric", numeric_transformer, numeric_features),#+[scale_by_group])
             ("unscalednumeric", IdentityTransformer(), numeric_features_not_scaled),
         ],
         remainder = "drop",

@@ -1,4 +1,4 @@
-# PRC: code from https://github.com/akrherz/iem/blob/main/scripts/asos/iem_scraper_example2.py
+# PRC: code largely rewritten, like vastly, but originaly I started from https://github.com/akrherz/iem/blob/main/scripts/asos/iem_scraper_example2.py
 # MIT License
 
 
@@ -15,7 +15,7 @@ import os
 
 def download():
     start = datetime.datetime(2021, 12, 31)
-    end = datetime.datetime(2023, 1, 1)
+    end = datetime.datetime(2023, 1, 2)
     step = datetime.timedelta(hours=24)
     config = utils.read_config()
     os.makedirs(config.METARs, exist_ok=True)
