@@ -5,7 +5,7 @@ import utils
 import os
 from pitot import geodesy
 import numpy as np
-
+from add_localtime import add_localtime
 
 FID = "flight_id"
 
@@ -90,6 +90,8 @@ class AllCategorical:
     def numeric_features(self):
         return []
 
+def round_to_hour(time):
+    return (time.dt.hour+time.dt.minute/60).round().astype(np.int32)
 
 class Flights:
     def __init__(self, config, what):
@@ -98,6 +100,12 @@ class Flights:
         df = readers.read_flights(fname)#.query("date.dt.month<=1").query("date.dt.day<=1")
         print(f"{df.shape=}")
         airports = pd.read_parquet(os.path.join(config.FOLDER_DATA,"airports_tz.parquet"))
+        df=add_localtime(airports,df,"actual_offblock_time","arrival_time")
+        df["local_hour_adep"]=round_to_hour(df["local_actual_offblock_time"])
+        df["local_hour_ades"]=round_to_hour(df["local_arrival_time"])
+        # print(df[["local_arrival_time","local_actual_offblock_time"]])
+        # print(df[["local_hour_ades","local_hour_adep"]])
+        # raise Exception
         # metars = pd.read_parquet(config.METARs+".parquet")
         # # print(df.dtypes)
         # # print(airports.dtypes)
@@ -137,11 +145,11 @@ class Flights:
         # )
     @sortedout
     def categorical_features(self):
-        return ["adep","ades","airline","aircraft_type","wtc","country_code_ades","country_code_adep","dayofweek"]#"callsign",
+        return ["adep","ades","airline","aircraft_type","wtc","country_code_ades","country_code_adep","dayofweek","local_hour_ades","local_hour_adep"]#"callsign",
     @sortedout
     def numeric_features_not_scaled(self):
         aptvar = [f"{v}_{apt}" for apt in ["ades","adep"] for v in ["drct","tmpf","sknt","elevation_ft","vsby","latitude_deg","longitude_deg"]]#"alti","drct","sknt","tmpf"]]
-        return ["arrival_minutes","actual_offblock_minutes","weekofyear"] + aptvar
+        return ["weekofyear"] + aptvar
     @sortedout
     def numeric_features(self):
         #return ["arrival_minutes","actual_offblock_minutes"]#"flight_duration","taxiout_time","flown_distance","arrival_minutes","actual_offblock_minutes"]

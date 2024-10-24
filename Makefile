@@ -76,6 +76,11 @@ features:  $(CRUISES)
 #$(CRUISES)
 #$(WEATHERS) $(WINDS) $(THUNDERS) $(MASSES)
 
+submissions:
+	for number in $(shell seq 0 9); do \
+		python3 regression.py -what submit -random_state $$number -log log$$number; \
+	done
+
 
 
 define add_mass

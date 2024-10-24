@@ -36,5 +36,5 @@ def compare(a,b):
 for root, dirs, files in os.walk(folderref):
     for name in files:
         fname = os.path.join(root, name)
-        if "cruise" in fname and "challenge_set" in fname and fname.endswith(".parquet"):
+        if "cruise" in fname and "challenge_set" not in fname and fname.endswith(".parquet"):
             compare(fname,replace(fname))
