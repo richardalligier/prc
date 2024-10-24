@@ -72,9 +72,10 @@ download: $(FLIGHTS) $(foreach f,$(shell mc ls dc24/competition-data  | rev | cu
 
 cleantrajectories: $(TRAJS)
 
-features:  $(CRUISES)
+features: $(MASSES)
 #$(CRUISES)
-#$(WEATHERS) $(WINDS) $(THUNDERS) $(MASSES)
+
+#$(WEATHERS) $(WINDS) $(THUNDERS)
 
 submissions:
 	for number in $(shell seq 0 9); do \
@@ -83,8 +84,8 @@ submissions:
 
 
 
-define add_mass
-	python3 add_mass.py -is_climb -t_in $^ -f_in $(FOLDER_FLGT)/$(patsubst $(FOLDER_MASS)/%/$(@F),%,$@).parquet -f_out $@ -periods $(CLMB_PERIODS) -thresh_dt $(CLMB_THRESHOLD_DT) -threshold_vr $(CLMB_THRESHOLD_VR) -cthrust $(CLMB_CTHRUST) -vrate_var $(CLMB_VRATE_VAR) -altstep $(CLMB_ALT_STEP)  -altstart $(CLMB_ALT_START) -airports $(AIRPORTS)
+define feature_climbing
+	python3 feature_climbing.py -is_climb -t_in $< -f_in $(FOLDER_FLGT)/$(patsubst $(FOLDER_MASS)/%/$(@F),%,$@).parquet -f_out $@ -periods $(CLMB_PERIODS) -thresh_dt $(CLMB_THRESHOLD_DT) -threshold_vr $(CLMB_THRESHOLD_VR) -cthrust $(CLMB_CTHRUST) -vrate_var $(CLMB_VRATE_VAR) -altstep $(CLMB_ALT_STEP)  -altstart $(CLMB_ALT_START) -airports $(AIRPORTS)
 endef
 
 define add_cruise
@@ -106,12 +107,12 @@ $(FOLDER_DATA)/METARs.parquet: $(AIRPORTS)
 
 $(FOLDER_WEATHER)/%.parquet: $(FOLDER_FLGT)/%.parquet $(AIRPORTS)
 	@mkdir -p $(@D)
-	python3 add_weather_from_metars.py -f_in $^ -airports $(AIRPORTS) -metars $(FOLDER_DATA)/METARs.parquet -f_out $@ -geo_scale 1 -hour_scale 1
+	python3 add_weather_from_metars.py -f_in $< -airports $(AIRPORTS) -metars $(FOLDER_DATA)/METARs.parquet -f_out $@ -geo_scale 1 -hour_scale 1
 
 
 $(FOLDER_THUNDER)/%.parquet: $(FOLDER_FLGT)/%.parquet $(AIRPORTS)
 	@mkdir -p $(@D)
-	python3 add_thunder_from_metars.py -f_in $^ -airports $(AIRPORTS) -metars $(FOLDER_DATA)/METARs.parquet -f_out $@ -geo_scale 1 -hour_scale 1
+	python3 add_thunder_from_metars.py -f_in $< -airports $(AIRPORTS) -metars $(FOLDER_DATA)/METARs.parquet -f_out $@ -geo_scale 1 -hour_scale 1
 
 $(FOLDER_FLGT)/%.parquet:
 	mkdir -p $(@D)
@@ -124,19 +125,19 @@ $(FOLDER_RAW)/%.parquet:
 
 $(FOLDER_FILT)/%.parquet: $(FOLDER_RAW)/%.parquet
 	@mkdir -p $(@D)
-	python3 filter_trajs.py -t_in $^ -t_out $@ -strategy classic
+	python3 filter_trajs.py -t_in $< -t_out $@ -strategy classic
 
 $(FOLDER_INT)/%.parquet: $(FOLDER_FILT)/%.parquet
 	@mkdir -p $(@D)
-	python3 interpolate.py -t_in $^ -t_out $@ -smooth $(INTERPOL_SMOOTH)
+	python3 interpolate.py -t_in $< -t_out $@ -smooth $(INTERPOL_SMOOTH)
 
 $(FOLDER_MASS)/final_submission_set/%.parquet: $(FOLDER_INT)/%.parquet  $(AIRPORTS)
 	@mkdir -p $(@D)
-	$(call add_mass)
+	$(call feature_climbing)
 
 $(FOLDER_MASS)/challenge_set/%.parquet: $(FOLDER_INT)/%.parquet  $(AIRPORTS)
 	@mkdir -p $(@D)
-	$(call add_mass)
+	$(call feature_climbing)
 
 
 $(FOLDER_CRUISE)/final_submission_set/%.parquet: $(FOLDER_INT)/%.parquet  $(AIRPORTS)

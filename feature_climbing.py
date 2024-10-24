@@ -10,7 +10,7 @@ import argparse
 # import pitot
 from pitot import isa
 import csaps
-from add_cruise_infos import joincdates
+from correct_date import joincdates
 
 
 
@@ -192,16 +192,16 @@ def compute_mass(df, is_climb,periods,thresh_dt,cthrust):
     # plt.plot(c)#[mask])
     # # plt.plot(p[mask])#[mask])
     # plt.show()
-    # # plt.plot(sols[:,0])
-    # # plt.plot(sols[:,1])
-    # # plt.plot(sols[:,1]-sols[:,0])
+    # plt.plot(sols[:,0])
+    # plt.plot(sols[:,1])
+    # plt.plot(sols[:,1]-sols[:,0])
     # # plt.plot(e_rate*1000)
     # # plt.plot(np.take_along_axis(sols,1-selected[:,None],axis=1)[:,0])#[:,0],sols[:,1])
     # # plt.plot(np.min(sols,axis=1))#[:,0],sols[:,1])
     # # plt.plot(np.max(sols,axis=1))#[:,0],sols[:,1])
-    # # plt.show()
+    # plt.show()
     # raise Exception
-    which = 0 if is_climb else 1
+    which = 0 #if is_climb else 1
     return pd.DataFrame({"masses":sols[:,which],"e_rate":e_rate},index=df.index)#total_energy_poly.roots2()[:,0] #
 
 
@@ -212,19 +212,21 @@ def add_mass(trajs, flights,threshold_vr,periods,thresh_dt,is_climb,prefix,cthru
     # print(flights.iloc[0][["actual_offblock_time","mid_flight_time","arrival_time"]])
     # raise Exception
     print(trajs.flight_id.nunique())
-    dfjoined = trajs.join(flights.set_index("flight_id"),on="flight_id",how="inner",validate="many_to_one")#.query("aircraft_type=='B738'")
-    print(dfjoined.flight_id.nunique())
-    dfjoined = dfjoined.merge(compute_mass(dfjoined,is_climb=is_climb,periods=periods,thresh_dt=thresh_dt,cthrust=cthrust),left_index=True,right_index=True)
-    timecondition = "timestamp<mid_flight_time" if is_climb else "timestamp>mid_flight_time"
-    vrcondition = f"{vrate_var} > @threshold_vr" if is_climb else f"{vrate_var} < @threshold_vr"
+    dfjoinedin = trajs.join(flights.set_index("flight_id"),on="flight_id",how="inner",validate="many_to_one")#.query("aircraft_type=='B738'")
+    print(dfjoinedin.flight_id.nunique())
+    dfjoinedin = dfjoinedin.merge(compute_mass(dfjoinedin,is_climb=is_climb,periods=periods,thresh_dt=thresh_dt,cthrust=cthrust),left_index=True,right_index=True)
+    timecondition = "t_adep<=timestamp<mid_flight_time" if is_climb else "t_ades>timestamp>mid_flight_time"
+    lvrcondition = [f"{vrate_var} > @threshold_vr",f"-@threshold_vr<= {vrate_var} <= @threshold_vr"] if is_climb else [f"{vrate_var} < @threshold_vr"]
+    lalts = [np.arange(altstart,48,altstep) * 1000 * utils.FEET2METER,[-10000,2000* utils.FEET2METER]]  if is_climb else [np.arange(altstart,48,altstep) * 1000 * utils.FEET2METER]
+    lprefix=["climb","takeoff"] if is_climb else ["descent"]
     # print(dfjoined.dtypes)
     # threshold_vr = -1500 * utils.FEET2METER / 60
-    dfjoined = dfjoined.query(f"{timecondition} and {vrcondition}")
-    print(dfjoined.flight_id.nunique())
+    dfjoinedin = dfjoinedin.query(f"{timecondition}")# and {vrcondition}")
+    print(dfjoinedin.flight_id.nunique())
     # dfjoined = dfjoined.assign(masses = compute_mass(dfjoined))
-    alts = np.arange(altstart,48,altstep) * 1000 * utils.FEET2METER
+#    alts = np.arange(altstart,48,altstep) * 1000 * utils.FEET2METER
 #    results = pd.DataFrame({"flight_id":dfjoined.flight_id.unique()}).set_index("flight_id")
-    results = dfjoined[["flight_id","aircraft_type"]].drop_duplicates().reset_index(drop=True)
+    results = dfjoinedin[["flight_id","aircraft_type"]].drop_duplicates().reset_index(drop=True)
     # print(list(results),results.index)
     # raise Exception
     n = results.shape[0]
@@ -249,20 +251,22 @@ def add_mass(trajs, flights,threshold_vr,periods,thresh_dt,is_climb,prefix,cthru
     # raise Exception
     # print(alts)
     lresults = []
-    dfjoined["DeltaT"]=dfjoined.temperature - isa.temperature(dfjoined.altitude)
-    for (i,(hlow,hhigh)) in enumerate(zip(alts[:-1],alts[1:])):
-        grouped = dfjoined.query("@hlow <= altitude < @hhigh").groupby("flight_id")
-        lresults.append(grouped.masses.median().rename(f"{prefix}mass_{i}"))
-        lresults.append(grouped.masses.count().fillna(0).rename(f"{prefix}masscount_{i}"))
-        lresults.append((grouped.timestamp.min() - grouped.t_adep.min()).dt.total_seconds().rename(f"{prefix}massadepdate_{i}"))
-        lresults.append((grouped.t_ades.max() - grouped.timestamp.max()).dt.total_seconds().rename(f"{prefix}massadesdate_{i}"))
-        lresults.append((grouped.vertical_rate.max()-grouped.vertical_rate.min()).rename(f"{prefix}DeltaROCD_{i}"))
-        lresults.append(grouped.vertical_rate.median().rename(f"{prefix}ROCD_{i}"))
-        lresults.append(grouped.e_rate.median().rename(f"{prefix}e_rate_median_{i}"))
-        lresults.append(grouped.tas.median().rename(f"{prefix}tas_median_{i}"))
-        lresults.append(grouped.DeltaT.median().rename(f"{prefix}DeltaT_median_{i}"))
-        lresults.append(grouped.e_rate.max().rename(f"{prefix}e_rate_max_{i}"))
-        lresults.append(grouped.e_rate.min().rename(f"{prefix}e_rate_min_{i}"))
+    dfjoinedin["DeltaT"]=dfjoinedin.temperature - isa.temperature(dfjoinedin.altitude)
+    for (alts,vrcondition,prefix) in zip(lalts,lvrcondition,lprefix):
+        dfjoined = dfjoinedin.query(vrcondition)
+        for (i,(hlow,hhigh)) in enumerate(zip(alts[:-1],alts[1:])):
+            grouped = dfjoined.query("@hlow <= altitude < @hhigh").groupby("flight_id")
+            lresults.append(grouped.masses.median().rename(f"{prefix}mass_{i}"))
+            lresults.append(grouped.masses.count().fillna(0).rename(f"{prefix}masscount_{i}"))
+            lresults.append((grouped.timestamp.min() - grouped.t_adep.min()).dt.total_seconds().rename(f"{prefix}massadepdate_{i}"))
+            lresults.append((grouped.t_ades.max() - grouped.timestamp.max()).dt.total_seconds().rename(f"{prefix}massadesdate_{i}"))
+            lresults.append((grouped.vertical_rate.max()-grouped.vertical_rate.min()).rename(f"{prefix}DeltaROCD_{i}"))
+            lresults.append(grouped.vertical_rate.median().rename(f"{prefix}ROCD_{i}"))
+            lresults.append(grouped.e_rate.median().rename(f"{prefix}e_rate_median_{i}"))
+            lresults.append(grouped.tas.median().rename(f"{prefix}tas_median_{i}"))
+            lresults.append(grouped.DeltaT.median().rename(f"{prefix}DeltaT_median_{i}"))
+            lresults.append(grouped.e_rate.max().rename(f"{prefix}e_rate_max_{i}"))
+            lresults.append(grouped.e_rate.min().rename(f"{prefix}e_rate_min_{i}"))
     results = pd.concat([results]+lresults,axis=1)
     print("results.shape",results.shape)
     return results#.reset_index()
@@ -297,7 +301,13 @@ def main():
     # print("tas",np.isnan(trajs.tas.values).mean())
     # print("temp",np.isnan(trajs.temperature.values).mean())
     # print("groundspeed",np.isnan(trajs.groundspeed.values).mean())
+    trajs["latitude"]=trajs["latitude"] * 180 / np.pi
+    trajs["longitude"]=trajs["longitude"] * 180 / np.pi
+    trajs["altitude"]=trajs["altitude"] / utils.FEET2METER
     flights = joincdates(readers.read_flights(args.f_in),airports,trajs,rod=-1000,roc=1000)
+    trajs["latitude"]=trajs["latitude"] / 180 * np.pi
+    trajs["longitude"]=trajs["longitude"] / 180 * np.pi
+    trajs["altitude"]=trajs["altitude"] * utils.FEET2METER
     dfadded = add_mass(trajs, flights,
                        periods = args.periods,
                        thresh_dt = args.thresh_dt,
