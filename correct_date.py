@@ -34,9 +34,9 @@ def compute_dates(flights,airports,trajs,rod=-1000,roc=1000):
         timedelta = ((xtime.altitude/rocd*60)*1e9).round() # nanosecond rounding
         # feed timedelta as nanoseconds, otherwise,
         # random overflow error from one run to another on the exact same data with the exact same code...
-        warnings.simplefilter("error")
-        xtime["timestamp"]=xtime["timestamp"]-pd.to_timedelta(timedelta,unit="nanoseconds")
-        warnings.simplefilter("default")
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            xtime["timestamp"]=xtime["timestamp"]-pd.to_timedelta(timedelta,unit="nanoseconds")
         x = xtime[["flight_id","timestamp"]].rename(columns={"timestamp":f"t_{apt}"}).set_index("flight_id")
         res = res.join(x,on="flight_id",how="left")
     return res

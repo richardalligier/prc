@@ -27,7 +27,7 @@ def read_json(fname):
 
 
 def get_version_number(submission_folder):
-    imax = 3
+    imax = -1
     for (dirpath, dirnames, filenames) in os.walk(submission_folder):
         for fname in filenames:
             v = fname.split("_")[3][1:]

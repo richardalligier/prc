@@ -33,7 +33,8 @@ FID = "flight_id"
 def sortedout(method):
     @wraps(method)
     def _sortedout(self):
-        # print(method(self))
+        # res = method(self)
+        # print(res)
         return sorted(method(self))
     return _sortedout
 
@@ -91,7 +92,7 @@ class AllCategorical:
         return []
 
 def round_to_hour(time):
-    return (time.dt.hour+time.dt.minute/60).round().astype(np.int32)
+    return (2*(time.dt.hour+time.dt.minute/60)).round().astype(np.int32)
 
 class Flights:
     def __init__(self, config, what):
@@ -145,11 +146,11 @@ class Flights:
         # )
     @sortedout
     def categorical_features(self):
-        return ["adep","ades","airline","aircraft_type","wtc","country_code_ades","country_code_adep","dayofweek","local_hour_ades","local_hour_adep"]#"callsign",
+        return ["adep","ades","airline","aircraft_type","wtc","country_code_ades","country_code_adep","dayofweek","local_hour_ades","local_hour_adep","weekofyear"]#,#"callsign",
     @sortedout
     def numeric_features_not_scaled(self):
         aptvar = [f"{v}_{apt}" for apt in ["ades","adep"] for v in ["drct","tmpf","sknt","elevation_ft","vsby","latitude_deg","longitude_deg"]]#"alti","drct","sknt","tmpf"]]
-        return ["weekofyear"] + aptvar
+        return aptvar
     @sortedout
     def numeric_features(self):
         #return ["arrival_minutes","actual_offblock_minutes"]#"flight_duration","taxiout_time","flown_distance","arrival_minutes","actual_offblock_minutes"]
@@ -214,7 +215,7 @@ class Union:
         self.fname = (flights.fname,)+tuple(x.fname for x in lfeatures)
     @sortedout
     def categorical_features(self):
-        return [y for x in self.lfeatures for y in x.categorical_features()] + self.flights.categorical_features()
+        return [y for x in self.lfeatures for y in x.categorical_features()] +  self.flights.categorical_features()
     @sortedout
     def numeric_features_not_scaled(self):
         return [y for x in self.lfeatures for y in x.numeric_features_not_scaled()] + self.flights.numeric_features_not_scaled()

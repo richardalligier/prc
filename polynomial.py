@@ -1,3 +1,4 @@
+import warnings
 import numpy as np
 
 def pad_rightmost_axis(a,pad_size):
@@ -55,7 +56,9 @@ class Polynomial:
         b = self.coeffs[...,1]
         c = self.coeffs[...,0]
         delta = b ** 2 - 4 * a * c
-        sqrtdelta = np.sqrt(delta)
+        with warnings.catch_warnings(): # if delta<0 do not want to see warnings
+            warnings.simplefilter("ignore")
+            sqrtdelta = np.sqrt(delta)
         x1 = (- b - sqrtdelta)/(2 * a)
         x2 = (- b + sqrtdelta)/(2 * a)
         return np.stack([x1,x2],axis=-1)

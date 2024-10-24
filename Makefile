@@ -78,7 +78,7 @@ features: $(MASSES)
 #$(WEATHERS) $(WINDS) $(THUNDERS)
 
 submissions:
-	for number in $(shell seq 0 9); do \
+	for number in $(shell seq 0 99); do \
 		python3 regression.py -what submit -random_state $$number -log log$$number; \
 	done
 
