@@ -18,34 +18,31 @@ make download && make cleantrajectories && make features && make submissions
 # Technical Aspects
 In this Section you will find technical aspects and motivations for the code in this repository.
 ## Filtering and Smoothing Trajectories
-Informations on the weight hides inside the kinematic of the aircraft. Thus, we want to have a good fine grain vision of its kinematic, leading us to filter and smooth the trajectories.
+Informations about the aircraft weight are somehow "hidden" in the kinematics of the aircraft. In order to have a good fine-grain vision of these kinematics, we need to filter and smooth the raw trajectories first.
 ### Filtering Trajectory (`filter_trajs.py`)
-We first try to remove measurements that are repeated from one time step to the next. Unfortunately, we do not know which measurement is repeated on the next time step but we can compute a proxy criteria by knowing which variables are said to be updated together in [ADS-B](https://mode-s.org/decode/content/quickstart.html). Then, to remove erroneous measurements, we coded our own version of the `FilterDerivative` found in the [Traffic](https://github.com/xoolive/traffic) library. We took care of not interpolating data at all. In fact we even discarded "isolated" points, points which are spaced more than 20 seconds from any other point.
+First, we try to remove measurements that are repeated from one time step to the next when no updated measurements are available. As we don't know which ones are repeated, we compute a proxy criteria by considering which variables are said to be updated together in [ADS-B](https://mode-s.org/decode/content/quickstart.html). If these variables have the same values from one measurement to the next, they are most likely repeated information. To remove erroneous measurements, we coded our own version of the `FilterDerivative` found in the [Traffic](https://github.com/xoolive/traffic) library. We took care of not interpolating data at all. In fact we even discarded "isolated" points, points which are spaced more than 20 seconds from any other point.
 
-Our "repeated measurements" filter might remove legit measurements, especially in phase where measurements are expected to be constant like the cruise phase for instance. However, this should not be hurtful as this phase last long and is not that "dense" information-wise. Conversely, this filter will work well on evolutive phase like the climbing phase which will be more "dense" information-wise for our problem.
 ### Smoothing Trajectory (`interpolate.py`)
-The smoothing is done using cubic smoothing splines of the [csaps](https://csaps.readthedocs.io/en/latest/) library. We are careful about not interpolating in area where there are not points. More specifically, we will not interpolated between two points spaced by more than 20 seconds.
+Smoothing is done using cubic smoothing splines of the [csaps](https://csaps.readthedocs.io/en/latest/) library. We avoid interpolating where there are not enough points. More specifically, we will not interpolate between two points spaced by more than 20 seconds.
 ## Building Features
 ### Correcting DateTimes (`correct_date.py`)
 When looking at trajectories, the `arrival_time` variable is not
-always correct, it is the same for the departure. To solve this issue,
+always correct. It is the same for the departure. To solve this issue,
 we look at points of the trajectory in a 10 NM radius of the departure
-airport (resp. arrival), then we take the point of maximum (resp. minimal)
+airport (resp. arrival). Then we consider the point of maximum (resp. minimal)
 timestamp among these points. Lastly, using the altitude of this
 point, we add to the point's timestamp a buffer time
-corresponding to a climb (or a descent) of 1000 ft/min. We did that
-because using a lower radius leave a lot of trajectory without a
-corrected date. Nonetheless, there are cases where no points are found
-inside the 10 NM radius, then we keep the departure and arrival date
-provided in the flights data.
+corresponding to a climb (or a descent) of 1000 ft/min, to compute an estimate of the departure (resp. arrival) time. A lower radius than 10 NM leaves a lot of trajectories without a
+corrected date. In cases where no points are found
+inside the 10 NM radius, we keep the departure and arrival date
+provided in the flight data.
 ### Features derived from METARs at departure and arrival airports (`correct_dates.py`)
 At departure and arrival airports, METARs are not always available in our files. To solve this issue, we build a `sklearn.neighbors.NearestNeighbors` "model" to query the METAR closest (in the space-time domain) to the wanted one.
 ### Features for Thunder/Fog at arrival airports (`correct_dates.py`)
-We expect that thunder and fog to be related to holding patterns. If the crew can expect such weather maybe they take more fuel. However, taking just the METAR arrival airport at the arrival time might be too fine grained. So, using a `sklearn.neighbors.NearestNeighbors` "model", we took all the METARs in a given space-time radius around the arrival airport at arrival time, and we summarize it. Not knowing, a priori, the good space-time radius, we did that for serveral radius value, the training algorithm will select the relevant ones, hopefully.
+We expect thunder and fog to be related to holding patterns. If such bad weather predictions are available to the crew before departure, we can expect that they might take some extra fuel on-board, thus increasing the mass. However, taking just the METAR arrival airport at the arrival time might be too fine-grained. So, using a `sklearn.neighbors.NearestNeighbors` "model", we take all the METARs in a given space-time radius around the arrival airport at arrival time, and we summarize it. Not knowing, a priori, the good space-time radius, we did that for serveral radius values, letting the training algorithm select the relevant ones (hopefully).
 ### Features Extracted from the trajectories
 One difficulty to extract features from trajectories is that a given
-feature should represent the same concept from one trajectory to an
-other, a concept hopefully related to the TOW.
+feature should represent the same concept from one trajectory to another, a concept hopefully related to the TOW.
 
 #### Features for the climbing Phase (`correct_dates.py`)
 Here, trajectories are "aligned" by considering altitude slices: for instance we compute a feature for the observed ROCD between 10500ft and 11500ft, capturing the concept "climbing performance at 10000ft" hopefully. Of course, this climbing segment can happen later in some flights, changing its "nominal" value. We hope capturing this by adding a temporal feature for the slice. We compute all these for 48 slices of 1000ft height, starting from [-500ft,500ft] to [46500ft,47500ft]. In details, considering points inside a given slice, we compute our features by doing statistics on points in this slice:
