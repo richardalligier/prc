@@ -59,6 +59,7 @@ FLIGHTS = $(foreach f,$(FLIGHT_FILES),$(FOLDER_FLGT)/$(f).parquet)
 
 
 AIRPORTS = $(FOLDER_DATA)/airports_tz.parquet
+METARS = $(FOLDER_DATA)/METARs.parquet
 MASSES = $(foreach flight,$(FLIGHT_FILES), $(foreach f,$(TRAJS_SRC),$(FOLDER_MASS)/$(flight)/$(f)))
 WINDS = $(foreach flight,$(FLIGHT_FILES), $(foreach f,$(TRAJS_SRC),$(FOLDER_WIND)/$(flight)/$(f)))
 CRUISES = $(foreach flight,$(FLIGHT_FILES), $(foreach f,$(TRAJS_SRC),$(FOLDER_CRUISE)/$(flight)/$(f)))
@@ -72,10 +73,10 @@ download: $(FLIGHTS) $(foreach f,$(shell mc ls dc24/competition-data  | rev | cu
 
 cleantrajectories: $(TRAJS)
 
-features: $(MASSES)
-#$(CRUISES)
+features: $(WEATHERS) $(THUNDERS)
+#$(CRUISES) $(MASSES)
 
-#$(WEATHERS) $(WINDS) $(THUNDERS)
+#$(WEATHERS) $(THUNDERS) $(WINDS)
 
 submissions:
 	for number in $(shell seq 0 99); do \
@@ -88,31 +89,31 @@ define feature_climbing
 	python3 feature_climbing.py -is_climb -t_in $< -f_in $(FOLDER_FLGT)/$(patsubst $(FOLDER_MASS)/%/$(@F),%,$@).parquet -f_out $@ -periods $(CLMB_PERIODS) -thresh_dt $(CLMB_THRESHOLD_DT) -threshold_vr $(CLMB_THRESHOLD_VR) -cthrust $(CLMB_CTHRUST) -vrate_var $(CLMB_VRATE_VAR) -altstep $(CLMB_ALT_STEP)  -altstart $(CLMB_ALT_START) -airports $(AIRPORTS)
 endef
 
-define add_cruise
+define feature_cruise
 	python3 feature_cruise_infos.py -t_in $< -f_in $(FOLDER_FLGT)/$(patsubst $(FOLDER_CRUISE)/%/$(@F),%,$@).parquet  -f_out $@ -airports $(AIRPORTS) -nsplit $(CRUISE_NSPLIT)
 endef
 
-define add_wind
-	python3 add_wind_effect.py -t_in $< -f_in $(FOLDER_FLGT)/$(patsubst $(FOLDER_WIND)/%/$(@F),%,$@).parquet  -f_out $@ -airports $(AIRPORTS)
+define feature_wind
+	python3 feature_wind_effect.py -t_in $< -f_in $(FOLDER_FLGT)/$(patsubst $(FOLDER_WIND)/%/$(@F),%,$@).parquet  -f_out $@ -airports $(AIRPORTS)
 endef
 
 
-$(AIRPORTS):
+$(AIRPORTS): $(FLIGHTS)
 #	curl -o $(FOLDER_DATA)/airports.csv https://github.com/davidmegginson/ourairports-data/blob/main/airports.csv
-	python3 add_timezone.py -a_in airports.csv -a_out $@  -flights "$(FLIGHTS)"
+	python3 airports_to_parquet.py -a_in ourairports2024-10-21.csv -a_out $@  -flights "$(FLIGHTS)"
 
 
-$(FOLDER_DATA)/METARs.parquet: $(AIRPORTS)
-	python metars_folder_to_parquet.py to_parquet -airports $(AIRPORTS) -metars_folder_in $(FOLDER_DATA)/METARs -metars_parquet_out $@
+$(METARS): $(AIRPORTS)
+	python3 metars_folder_to_parquet.py -metars_folder_in $(FOLDER_DATA)/METARs -metars_parquet_out $@
 
-$(FOLDER_WEATHER)/%.parquet: $(FOLDER_FLGT)/%.parquet $(AIRPORTS)
+$(FOLDER_WEATHER)/%.parquet: $(FOLDER_FLGT)/%.parquet $(AIRPORTS) $(METARS)
 	@mkdir -p $(@D)
-	python3 add_weather_from_metars.py -f_in $< -airports $(AIRPORTS) -metars $(FOLDER_DATA)/METARs.parquet -f_out $@ -geo_scale 1 -hour_scale 1
+	python3 feature_weather_from_metars.py -f_in $< -airports $(AIRPORTS) -metars $(METARS) -f_out $@ -geo_scale 1 -hour_scale 1
 
 
-$(FOLDER_THUNDER)/%.parquet: $(FOLDER_FLGT)/%.parquet $(AIRPORTS)
+$(FOLDER_THUNDER)/%.parquet: $(FOLDER_FLGT)/%.parquet $(AIRPORTS) $(METARS)
 	@mkdir -p $(@D)
-	python3 add_thunder_from_metars.py -f_in $< -airports $(AIRPORTS) -metars $(FOLDER_DATA)/METARs.parquet -f_out $@ -geo_scale 1 -hour_scale 1
+	python3 feature_thunder_from_metars.py -f_in $< -airports $(AIRPORTS) -metars $(METARS) -f_out $@ -geo_scale 1 -hour_scale 1
 
 $(FOLDER_FLGT)/%.parquet:
 	mkdir -p $(@D)
@@ -142,17 +143,17 @@ $(FOLDER_MASS)/challenge_set/%.parquet: $(FOLDER_INT)/%.parquet  $(AIRPORTS)
 
 $(FOLDER_CRUISE)/final_submission_set/%.parquet: $(FOLDER_INT)/%.parquet  $(AIRPORTS)
 	@mkdir -p $(@D)
-	$(call add_cruise)
+	$(call feature_cruise)
 
 $(FOLDER_CRUISE)/challenge_set/%.parquet: $(FOLDER_INT)/%.parquet  $(AIRPORTS)
 	@mkdir -p $(@D)
-	$(call add_cruise)
+	$(call feature_cruise)
 
 
 $(FOLDER_WIND)/final_submission_set/%.parquet: $(FOLDER_INT)/%.parquet $(AIRPORTS)
 	@mkdir -p $(@D)
-	$(call add_wind)
+	$(call feature_wind)
 
 $(FOLDER_WIND)/challenge_set/%.parquet: $(FOLDER_INT)/%.parquet $(AIRPORTS)
 	@mkdir -p $(@D)
-	$(call add_wind)
+	$(call feature_wind)

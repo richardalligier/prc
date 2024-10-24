@@ -5,8 +5,7 @@ import argparse
 import readers
 
 parser = argparse.ArgumentParser(
-    prog='add_timezone',
-    description='add_timezone',
+    description='add timezone to airport and output a parquet file',
 )
 parser.add_argument("-a_in")
 parser.add_argument("-a_out")

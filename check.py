@@ -20,7 +20,7 @@ def compare(a,b):
     names = list(sa.intersection(sb))
     # print(af["flight_id"])
     # print(bf["flight_id"])
-    print((bf["flight_id"]==af["flight_id"]).all())
+#    print((bf["flight_id"]==af["flight_id"]).all())
     print((af[names].isna().sum()-bf[names].isna().sum()))
 #    print(af.Cruisemach_7.isna().sum(),bf.Cruisemach_7.isna().sum())
     # print(af.Cruisemach_1.isna().sum(),bf.Cruisemach_1.isna().sum())
@@ -31,10 +31,10 @@ def compare(a,b):
     assert((af[names].values[mask]==bf[names].values[mask]).all())
 
 
+compare("/disk3/refprc/METARs.parquet","/disk3/refprc/METARsref.parquet")
 
-
-for root, dirs, files in os.walk(folderref):
-    for name in files:
-        fname = os.path.join(root, name)
-        if "mass" in fname and "challenge_set" not in fname and fname.endswith(".parquet"):
-            compare(fname,replace(fname))
+# for root, dirs, files in os.walk(folderref):
+#     for name in files:
+#         fname = os.path.join(root, name)
+#         if "mass" in fname and "challenge_set" not in fname and fname.endswith(".parquet"):
+#             compare(fname,replace(fname))
