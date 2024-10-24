@@ -119,7 +119,7 @@ def compute_mass(df, is_climb,periods,thresh_dt,cthrust):
     return pd.DataFrame({"masses":sols[:,which],"e_rate":e_rate},index=df.index)
 
 
-def feature_climbing(trajs, flights,threshold_vr,periods,thresh_dt,is_climb,prefix,cthrust,vrate_var,altstart,altstep):
+def feature_climbing(trajs, flights,threshold_vr,periods,thresh_dt,is_climb,cthrust,vrate_var,altstart,altstep):
     ''' compute all the features to be added by this python code '''
     # flights["mid_flight_time"] = flights.actual_offblock_time + (flights.arrival_time-flights.actual_offblock_time) / 2
     flights["mid_flight_time"] = flights.t_adep + (flights.t_ades-flights.t_adep) / 2
@@ -186,7 +186,6 @@ def main():
     parser.add_argument("-is_climb",action="store_true")
     parser.add_argument("-threshold_vr",type=float,help="in [ft/min]")
     parser.add_argument("-cthrust",type=float,help="thrust = cthrust * thrustmaxclimb")
-    parser.add_argument("-prefix",type=str,default="")
     parser.add_argument("-periods",type=int)
     parser.add_argument("-thresh_dt",type=int,help="in [s]")
     parser.add_argument("-vrate_var",type=str)
@@ -211,7 +210,6 @@ def main():
                        threshold_vr = args.threshold_vr,
                        is_climb = args.is_climb,
                        cthrust = args.cthrust,
-                       prefix=args.prefix,
                        vrate_var=args.vrate_var,
                        altstart = args.altstart,
                        altstep = args.altstep,
