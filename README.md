@@ -11,7 +11,7 @@ improves the results [¹]. In the final part of the challenge, we just trained m
 time we had left, and averaged them.
 
 | number of model(s) averaged | RMSE on the final\_submission\_set [kg] | seed(s) | submissions version |
-|----------------------------:|:---------------------------------------:|:---------|---------------------|
+|----------------------------:|:---------------------------------------:|:---------|---------------------:|
 |                           1 | 1,612                                 |    0     |          20          |
 |                    centered | $12                                     |         |                     |
 |               right-aligned | $1                                      |         |                     |
