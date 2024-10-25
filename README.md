@@ -1,6 +1,19 @@
 # PRC Data Challenge
 The objective of this challenge was to build an **open** Machine Learning model predicting the Take Off Weight (TOW) of an aircraft from its flight and trajectory information, more info at [PRC Challenge](https://ansperformance.eu/study/data-challenge/). Please bear in mind that **all** this repository (documentation included) was done during a competition and hence was done in a limited time.
 
+# Overview of our method
+Our predictions are obtained by averaging the results of several gradient-boosted tree models, trained with different random seeds on the same data.
+
+In order to predict the take-off weight, our model takes as input a number of basic variables such as the departure and arrival airports, the airline, aircraft type, wake turbulence vortex, day of week, the flight duration, taxi-out time, flown distance, etc, and additionnal variables extracted from the ADS-B trajectories, and also weather data obtained from METAR. Prior to this feature extraction, the trajectories are filtered (see technical details below) and smoothed using cubic splines. 
+
+The features extracted from ADS-B trajectories include:
+- several statistics on the rate of climb or descent (ROCD), the energy rate and an estimated "equivalent mass" obtained using an open-access point-mass model of the aircraft, for a number of altitude "slices" of each trajectory,
+- the median Mach number, median altitude, and altitude difference between the first and last point, for a number of trajectory portions,
+- the average wind along the trajectory.
+
+The features derived from METAR include the presence of thunderstorms or fog at the arrival airport or in an area around this airport, around the time of arrival.
+
+The target variable TOW and some explanatory variables were rescaled so as to ease training. More details on the additionnal features and training process are given in the "Technical Aspects" section below.
 
 # The Results
 On a ThreadRipper
@@ -38,9 +51,9 @@ we look at points of the trajectory in a 10 NM radius of the departure
 airport (resp. arrival). Then we consider the point of maximum (resp. minimal)
 timestamp among these points. Lastly, using the altitude of this
 point, we add to the point's timestamp a buffer time
-corresponding to a climb (or a descent) of 1000 ft/min, to compute an estimate of the departure (resp. arrival) time. A lower radius than 10 NM leaves a lot of trajectories without a
-corrected date. In cases where no points are found
-inside the 10 NM radius, we keep the departure and arrival date
+corresponding to a climb (or a descent) of 1000 ft/min, to compute an estimate of the departure (resp. arrival) time. Choosing a radius lower than 10 NM leaves a lot of trajectories without a
+corrected date/time, so we opted for 10 NM. In cases where no points are found
+inside the 10 NM radius, we keep the departure and arrival date/times
 provided in the flight data.
 ### Features derived from METARs at departure and arrival airports (`feature_weather_from_metars.py`)
 At departure and arrival airports, METARs are not always available in our files. To solve this issue, we build a `sklearn.neighbors.NearestNeighbors` "model" to query the METAR closest (in the space-time domain) to the wanted one.
@@ -70,8 +83,8 @@ We do that for all the 48 slices, creating hundreds of features. The last featur
 One can proceed similarly on the descent phase but it did not provide much improvement in our tests, so we did not use it in the end. The reason for this is unclear, maybe the variability is greater in the descent phase than in the climb phase, maybe the descent phase is at the end of the flight, so the relation with the TOW is looser.
 
 #### Features for the Whole Flight Temporal Profile (`feature_cruise_infos.py`)
-Here, trajectories are "aligned" by considering scaled temporal slices computed using $\left({\mathrm{timestamp}_i-t\_{adep}}\right)/\left({t\_{ades}-t\_{adep}}\right)$ which can be seen as the completion percentage, the slice [5%,10%] is at the begining of the flight whereas [90%,95%] is at the end of the flight. Due to the scaling, the first part and the last part are not well "aligned": considering two flights, for instance a 1-hour flight and a 5-hour flight, the statistics computed on the [5%-10%] slice does not represent the same concept as they are likely not in the same flight phase. However, statistics in the [45%;50%] slice represent somewhat the same concept, they are both in the same flight phase and mid-flight. These "mis-alignements" on the firsts slices might not be too critical as we already have features dealing with the climbing phase.
-Considering points inside a given slice, we compute our features whihch would simply statistics on points in this slice:
+Here, trajectories are "aligned" by considering scaled temporal slices computed using $\left({\mathrm{timestamp}_i-t\_{adep}}\right)/\left({t\_{ades}-t\_{adep}}\right)$ which can be seen as the completion percentage, the slice [5%,10%] is at the begining of the flight whereas [90%,95%] is at the end of the flight. Due to the scaling, the first part and the last part are not well "aligned": considering two flights, for instance a 1-hour flight and a 5-hour flight, the statistics computed on the [5%-10%] slice does not represent the same concept as they are likely not in the same flight phase. However, statistics in the [45%;50%] slice represent somewhat the same concept, they are both in the same flight phase and mid-flight. These "mis-alignements" on the first slices might not be too critical as we already have features dealing with the climbing phase.
+Considering points inside a given slice, our features are obtained by computing the following statistics on the points within the slice:
 - ${t\_{ades}-t\_{adep}}$ - the scaling factor and flight duration
 - $\mathrm{Cardinal}\left(\mathrm{slice}\right)$ - number of points in the slice
 - $\mathrm{median}_{\mathrm{i}\in\mathrm{slice}}~\mathrm{Mach}_i$
