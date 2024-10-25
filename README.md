@@ -55,7 +55,7 @@ Here, trajectories are "aligned" by considering altitude slices: for instance we
 - $\mathrm{Cardinal}\left(\mathrm{slice}\right)$ - number of points in the slice
 - $\mathrm{median}_{\mathrm{i}\in\mathrm{slice}}~\mathrm{ROCD}_i$
 - $max_j ROCD_j - min_i ROCD_i$
-- $\mathrm{median}_{\mathrm{i}\in\mathrm{slice}}~\mathrm{ROCD}_i$
+<!-- - $\mathrm{median}_{\mathrm{i}\in\mathrm{slice}}~\mathrm{ROCD}_i$ -->
 - $\mathrm{median}_{\mathrm{i}\in\mathrm{slice}}~\mathrm{TrueAirSpeed}_i$
 - $\mathrm{median}_{\mathrm{i}\in\mathrm{slice}}~\Delta T_i$
 - $\mathrm{min}_{\mathrm{i}\in\mathrm{slice}}~\mathrm{energyrate}_i$
