@@ -12,7 +12,7 @@ time we had left, and averaged them.
 
 | number of model(s) averaged | RMSE on the final\_submission\_set [kg] | seed(s) | submissions version |
 |----------------------------:|:---------------------------------------:|:---------|---------------------|
-|                           1 | 1,617.55                                 |    0     |          19          |
+|                           1 | 1,612                                 |    0     |          20          |
 |                    centered | $12                                     |         |                     |
 |               right-aligned | $1                                      |         |                     |
 
@@ -110,18 +110,18 @@ the aircraft type, a value of 1
 is associated with an heavy plane. Furthermore this aligns
 well with the predicted variable's scaling.
 
-This "scaling by group" principle should also
-be useful on other variables like the distance_flown for instance: a 1,500km trip is
-a short or long flight depending on the aircraft type, so scaling the
-distance flown according the aircraft type should make sense. This was
-tested with the ScaleByGroup class. Despite not being actually used
-this class was not deleted from the final code We left this in the final code, maybe
+<!-- This "scaling by group" principle should also -->
+<!-- be useful on other variables like the distance_flown for instance: a 1,500km trip is -->
+<!-- a short or long flight depending on the aircraft type, so scaling the -->
+<!-- distance flown according the aircraft type should make sense. This was -->
+<!-- tested with the ScaleByGroup class. Despite not being actually used -->
+<!-- this class was not deleted from the final code We left this in the final code, maybe -->
 
-As the training process makes
-random choices to build the model, the model can be seen as a random
-model. One can decompose Running the same algorithm with a different seed
-produces a different model. Bagging is a
-special case of this.
+<!-- As the training process makes -->
+<!-- random choices to build the model, the model can be seen as a random -->
+<!-- model. One can decompose Running the same algorithm with a different seed -->
+<!-- produces a different model. Bagging is a -->
+<!-- special case of this. -->
 
 # Main External Softwares
 This work builds on some external software:
