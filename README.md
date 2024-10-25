@@ -4,7 +4,7 @@ The objective of this challenge was to build an **open** Machine Learning model 
 # Overview of our method
 Our predictions are obtained by averaging the results of several gradient-boosted tree models, trained with different random seeds on the same data.
 
-In order to predict the take-off weight, our model takes as input a number of basic variables such as the departure and arrival airports, the airline, aircraft type, wake turbulence vortex, day of week, the flight duration, taxi-out time, flown distance, etc, and additionnal variables extracted from the ADS-B trajectories, and also weather data obtained from METAR. Prior to this feature extraction, the trajectories are filtered (see technical details below) and smoothed using cubic splines. 
+In order to predict the take-off weight, our model takes as input a number of basic variables such as the departure and arrival airports, the airline, aircraft type, wake turbulence category, day of week, the flight duration, taxi-out time, flown distance, etc, and additionnal variables extracted from the ADS-B trajectories, and also weather data obtained from METAR. Prior to this feature extraction, the trajectories are filtered (see technical details below) and smoothed using cubic splines. 
 
 The features extracted from ADS-B trajectories include:
 - several statistics on the rate of climb or descent (ROCD), the energy rate and an estimated "equivalent mass" obtained using an open-access point-mass model of the aircraft, for a number of altitude "slices" of each trajectory,
@@ -26,7 +26,7 @@ time we had left, and averaged them.
 | number of model(s) averaged | RMSE on the final\_submission\_set [kg] | seed(s) | submission version |
 |----------------------------:|:---------------------------------------:|:---------|---------------------:|
 |                           1 | 1,612                                 |    0     |          20          |
-|                    centered | $12                                     |         |                     |
+|                    10 | 1,467                                     |     0 to 9    |         21            |
 |               right-aligned | $1                                      |         |                     |
 
 # To Reproduce the Results
