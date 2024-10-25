@@ -10,7 +10,7 @@ randomness, averaging different models (hence different draws of the model)
 improves the results [¹]. In the final part of the challenge, we just trained models in the limited
 time we had left, and averaged them.
 
-| number of model(s) averaged | RMSE on the final\_submission\_set [kg] | seed(s) | submissions version |
+| number of model(s) averaged | RMSE on the final\_submission\_set [kg] | seed(s) | submission version |
 |----------------------------:|:---------------------------------------:|:---------|---------------------:|
 |                           1 | 1,612                                 |    0     |          20          |
 |                    centered | $12                                     |         |                     |
@@ -83,7 +83,8 @@ We do that for 20 slices starting from the slice [0,5%] to the slice [95%,100%].
 #### Features for the Wind Effect (`feature_wind_effect.py`)
 We computed the average value of
 $\mathrm{dot}\left(\vec{wind},\vec{groundspeed}\right)/ \lVert \vec{groundspeed} \rVert$
-along the trajectory.
+along the trajectory. It quantifies if the wind is "helping" (or the opposite) along the
+flight path.
 
 ## Training the Model (`regression.py`,`features.py`,`sklearnutils.py`,`optimparam.py`)
 The model was trained using
