@@ -114,7 +114,7 @@ optimize the root mean square error on the "absolute" mass, the LightGBM
 was trained with a vector of weights equal to the squared scaling term: (MTOW-EOW)**2.
 
 
-In "vanilla" [^bignote] tree models like the ones used in LightGBM, any
+In "vanilla"[^bignote] tree models like the ones used in LightGBM, any
 strictly monotonic transformation of the variables does not change the
 split choices and hence the predictions. However, applying different
 scalings on different groups of examples does change the
@@ -154,10 +154,10 @@ This work uses external data in the public domain, namely:
 
 
 
-[¹] Think of the bias-variance decomposition and its
+[¹]: Think of the bias-variance decomposition and its
 usage in bagging. This decomposition is valid with randomness in
 general not just randomness introduced by bagging.
 
-[^bignote] Vanilla here refers to tree with simple where one variable is
+[^bignote]: Vanilla here refers to tree with simple where one variable is
 compared to a constant threshold: $X_i<Threshold$
 
