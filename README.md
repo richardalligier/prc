@@ -4,7 +4,7 @@ The objective of this challenge was to build an **open** Machine Learning model 
 
 # The Results
 On a ThreadRipper
-1920X, One model takes ~65 minutes to train. Each model is a LightGBM
+1920X, one model takes ~65 minutes to train. Each model is a LightGBM
 model with 50,000 trees. As the training process involves
 randomness, averaging different models (hence different draws of the model)
 improves the results [¹]. In the final part of the challenge, we just trained models in the limited
@@ -94,7 +94,7 @@ were obtained by doing a random search using a validation set. It is implemented
 The variable TOW to be predicted was scaled using
 (TOW-EOW)/(MTOW-EOW). This way, the range of the variable to be
 predicted is roughly the same and mostly inside [0.2,1]. This saves
-avoid the training process to consume a lot of splits o `aircraft_type` and `wtc` just to get the
+avoid the training process to consume a lot of splits on `aircraft_type` and `wtc` just to get the
 mass range right. However a 10% relative error on an
 A320 or a A343 does not produce the same absolute mass error. To still
 optimize the root mean square error on the "absolute" mass, the LightGBM
