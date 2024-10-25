@@ -78,7 +78,8 @@ features: $(CRUISES) $(MASSES) $(WINDS)
 submissions:
 	for number in $(shell seq 0 100); do \
 		python3 regression.py -what submit -random_state $$number -log log$$number; \
-	done
+	done;
+	python3 average_prediction -istop 100 -out_csv $(SUBMISSIONS_FOLDER)/averaged_100.csv
 
 
 

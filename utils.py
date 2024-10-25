@@ -35,15 +35,20 @@ def get_version_number(submission_folder):
     return imax + 1
 
 
-def write_submission(config,df):
+
+def get_submission_name(config):
     json = read_json(config.JSON)
     team_name = json["team_name"]
     team_id = json["team_id"]
+    return f"{team_name}_"+"v{version}"+f"_{team_id}.csv"
+
+
+def write_submission(config,df):
     sub_folder = config.SUBMISSIONS_FOLDER
     if not os.path.exists(sub_folder):
         os.makedirs(sub_folder)
     version = get_version_number(sub_folder)
-    fname = f"{team_name}_v{version}_{team_id}.csv"
+    fname = get_submission_name(config).format(version=version)#f"{team_name}_v{version}_{team_id}.csv"
     df.to_csv(os.path.join(sub_folder,fname),index=False)
 
 
