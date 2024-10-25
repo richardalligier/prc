@@ -5,6 +5,7 @@ import utils
 import numpy as np
 
 def average_prediction(istart,istop):
+    ''' adds '''
     config = utils.read_config()
     fname = os.path.join(config.SUBMISSIONS_FOLDER,utils.get_submission_name(config))
     l = [pd.read_csv(fname.format(version=i)) for i in range(istart,istop)]
