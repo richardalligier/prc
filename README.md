@@ -26,7 +26,7 @@ time we had left, and averaged them.
 | number of model(s) averaged | RMSE on the final\_submission\_set [kg] | seed(s) | submission version |
 |----------------------------:|:---------------------------------------:|:---------|---------------------:|
 |                           1 | 1,612                                 |    0     |          20          |
-|                    10 | 1,467                                     |     0 to 9    |         21            |
+|                    10 | 1,567                                     |     0 to 9    |         21            |
 |               right-aligned | $1                                      |         |                     |
 
 # To Reproduce the Results
