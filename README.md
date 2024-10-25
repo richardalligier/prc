@@ -81,10 +81,10 @@ Considering points inside a given slice, we compute our features whihch would si
 We do that for 20 slices starting from the slice [0,5%] to the slice [95%,100%]. These features are mostly designed to capture the information in the cruise phase.
 
 #### Features for the Wind Effect (`feature_wind_effect.py`)
-We computed the average value of
+We compute the average value of the wind projected onto the ground speed
 $\mathrm{dot}\left(\vec{wind},\vec{groundspeed}\right)/ \lVert \vec{groundspeed} \rVert$
-along the trajectory. It quantifies if the wind is "helping" (or the opposite) along the
-flight path.
+along the trajectory. It quantifies if there is a tail wind, "helping" along the
+flight path, on average, of if there is a head wind.
 
 ## Training the Model (`regression.py`,`features.py`,`sklearnutils.py`,`optimparam.py`)
 The model was trained using
@@ -93,8 +93,8 @@ were obtained by doing a random search using a validation set. It is implemented
 
 The variable TOW to be predicted was scaled using
 (TOW-EOW)/(MTOW-EOW). This way, the range of the variable to be
-predicted is roughly the same and mostly inside [0.2,1]. This saves
-avoid the training process to consume a lot of splits on `aircraft_type` and `wtc` just to get the
+predicted is roughly the same and mostly inside [0.2,1]. This scaling
+avoids the training process to consume a lot of splits of `aircraft_type` and `wtc` just to get the
 mass range right. However a 10% relative error on an
 A320 or a A343 does not produce the same absolute mass error. To still
 optimize the root mean square error on the "absolute" mass, the LightGBM
@@ -104,11 +104,11 @@ was trained with a vector of weights equal to the squared scaling term: (MTOW-EO
 In "vanilla" [^2] tree models like the ones used in LightGBM, any
 strictly monotonic transformation of the variables does not change the
 split choices and hence the predictions. However, applying different
-scaling on different on different group of examples does change the
-split choices. The estimated mass explanatory variables were scaled according their
+scalings on different groups of examples does change the
+split choices. The estimated mass explanatory variables were scaled according to their
 aircraft type using the formula: (mass-EOW)/(MTOW-EOW). Regardless of
 the aircraft type, a value of 1
-is associated with an heavy plane. Furthermore this aligns
+is associated with an heavy aircraft. Furthermore this aligns
 well with the predicted variable's scaling.
 
 <!-- This "scaling by group" principle should also -->
@@ -146,3 +146,4 @@ usage in bagging. This decomposition is valid with randomness in
 general not just randomness introduced by bagging.
 [^2] Vanilla here refers to tree with simple where one variable is
 compared to a constant threshold: $X_i<Threshold$
+
