@@ -1,14 +1,20 @@
 # PRC Data Challenge
-This challenge aimed at estimating the Take Off Weight (TOW) of an aircraft from its flight and trajectory information, more info at [PRC Challenge](https://ansperformance.eu/study/data-challenge/). Please bear in mind that **all** this repository (documentation included) was done during a competition and hence was done in a limited time.
+The objective of this challenge was to build an **open** Machine Learning model predicting the Take Off Weight (TOW) of an aircraft from its flight and trajectory information, more info at [PRC Challenge](https://ansperformance.eu/study/data-challenge/). Please bear in mind that **all** this repository (documentation included) was done during a competition and hence was done in a limited time.
 
 
 # The Results
+On a ThreadRipper
+1920X, One model takes ~65 minutes to train. Each model is a LightGBM
+model with 50,000 trees. As the training process involves
+randomness, averaging different models (hence different draws of the model)
+improves the results [¹]. In the final part of the challenge, we just trained models in the limited
+time we had left, and averaged them.
 
-|     number of model(s) averaged      |  RMSE on the final\_submission\_set [kg]|
-|-------------:|:------|
-|  1 | 1617.55 (v19) |
-|    centered   |   $12 |
-| right-aligned |    $1 |
+| number of model(s) averaged | RMSE on the final\_submission\_set [kg] | seed(s) | submissions version |
+|----------------------------:|:---------------------------------------:|:---------|---------------------|
+|                           1 | 1,617.55                                 |    0     |          19          |
+|                    centered | $12                                     |         |                     |
+|               right-aligned | $1                                      |         |                     |
 
 # To Reproduce the Results
 First edit the variable `FOLDER_DATA` in the `CONFIG` file, then just run the command below. Please be aware that it might take some time. To reduce this time depending on your computer you might want to use the option `-j` of `make`. For instance, `make -j4 cleantrajectories`, will launch 4 processes in parallel. In this whole project, each process takes no more than approximately 20GB of RAM. The only process that takes more is the training but this training phase does not use the `-j` of the `make` to run in parallel.
@@ -76,11 +82,46 @@ We do that for 20 slices starting from the slice [0,5%] to the slice [95%,100%].
 
 #### Features for the Wind Effect (`feature_wind_effect.py`)
 We computed the average value of
-$\mathrm{dot}\left(\vect{Wind},\vect{Groundspeed}\right)/\vect{Groundspeed}$
+$\mathrm{dot}\left(\vec{wind},\vec{groundspeed}\right)/ \lVert \vec{groundspeed} \rVert$
 along the trajectory.
 
 ## Training the Model
-The model was trained using [LightGBM](https://lightgbm.readthedocs.io/en/stable/index.html).MTOW-EOW Scaling. Hyperparameters were obtained by doing a random search implemented in `optimparam.py`. Using these hyperparameters, we built 10 models using 10 different random seeds. The final model is the average of these 10 models with 50000 trees each.
+The model was trained using
+[LightGBM](https://lightgbm.readthedocs.io/en/stable/index.html). Hyperparameters
+were obtained by doing a random search using a validation set. It is implemented in `optimparam.py`.
+
+The variable TOW to be predicted was scaled using
+(TOW-EOW)/(MTOW-EOW). This way, the range of the variable to be
+predicted is roughly the same and mostly inside [0.2,1]. This saves
+avoid the training process to consume a lot of splits o `aircraft_type` and `wtc` just to get the
+mass range right. However a 10% relative error on an
+A320 or a A343 does not produce the same absolute mass error. To still
+optimize the root mean square error on the "absolute" mass, the LightGBM
+was trained with a vector of weights equal to the squared scaling term: (MTOW-EOW)**2.
+
+
+In "vanilla" [^2] tree models like the ones used in LightGBM, any
+strictly monotonic transformation of the variables does not change the
+split choices and hence the predictions. However, applying different
+scaling on different on different group of examples does change the
+split choices. The estimated mass explanatory variables were scaled according their
+aircraft type using the formula: (mass-EOW)/(MTOW-EOW). Regardless of
+the aircraft type, a value of 1
+is associated with an heavy plane. Furthermore this aligns
+well with the predicted variable's scaling.
+
+This "scaling by group" principle should also
+be useful on other variables like the distance_flown for instance: a 1,500km trip is
+a short or long flight depending on the aircraft type, so scaling the
+distance flown according the aircraft type should make sense. This was
+tested with the ScaleByGroup class. Despite not being actually used
+this class was not deleted from the final code We left this in the final code, maybe
+
+As the training process makes
+random choices to build the model, the model can be seen as a random
+model. One can decompose Running the same algorithm with a different seed
+produces a different model. Bagging is a
+special case of this.
 
 # Main External Softwares
 This work builds on some external software:
@@ -96,3 +137,11 @@ This work uses external data in the public domain, namely:
 - airports.csv file from [ourairports.com](https://ourairports.com)
 - metar files from [https://mesonet.agron.iastate.edu/ASOS/](https://mesonet.agron.iastate.edu/ASOS/)
 - Wikipedia pages for the MTOW and EOW not inside OpenAP
+
+
+
+[¹] Think of the bias-variance decomposition and its
+usage in bagging. This decomposition is valid with randomness in
+general not just randomness introduced by bagging.
+[^2] Vanilla here refers to tree with simple where one variable is
+compared to a constant threshold: $X_i<Threshold$
