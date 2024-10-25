@@ -14,6 +14,10 @@ from correct_date import joincdates
 
 
 class WrapperOpenAP:
+    """
+    A wrapper to OpenAP that takes a dataframe as input, this allows to deal with SI/aeronautical units stuff
+    We also added a method to extract the drag as a second degree polynomial of the mass.
+    """
     _dragsynonym = {
         "a21n":"a321",
         "crj9":"e75l",
@@ -60,6 +64,12 @@ class WrapperOpenAP:
 
 
 def energy_rate(df,periods,thresh_dt):
+    '''
+    Computes energy rate from trajs fils @df considering pairs of points separated by @period points.
+    Roughly speaking it computes (Energy(point i) - Energy(point i+@period))/(Timestamp(point i) - Timestamp(point i+@period)).
+    If (Timestamp(point i+@period) - Timestamp(point i))> @thresh_dt, then the energy rate is ruled out as np.nan.
+    This allows to treat all the trajectories altogether without considering one trajectory at a time.
+    '''
     tempISA = isa.temperature(df.altitude)
     tau = df.temperature / tempISA
     g_0 = 9.80665
@@ -78,6 +88,12 @@ def energy_rate(df,periods,thresh_dt):
 
 
 def total_energy_polynomial_equation(thrust,drag_poly,energy_rate,tas):
+    '''
+    Computes the polynomial associated to the total energy rate equation:
+    Polynom(mass)=(Thrust-Drag)/m*tas - energy_rate
+    Physicals equation rules that Polynom(actual_mass)=0
+    So the roots are of particular interest
+    '''
     pthrust = Polynomial(thrust[:,np.newaxis])
 
     penergyshape = energy_rate.shape+(2,)
@@ -95,6 +111,9 @@ def total_energy_polynomial_equation(thrust,drag_poly,energy_rate,tas):
     return power - penergy
 
 def compute_mass(df, is_climb,periods,thresh_dt,cthrust):
+    '''
+    Computes the mass as the largest root of the total energy polynom
+    '''
     lac = df.aircraft_type.unique()
     n = df.shape[0]
     thrust = np.empty(n)

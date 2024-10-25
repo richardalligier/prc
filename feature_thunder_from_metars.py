@@ -7,7 +7,11 @@ import numpy as np
 from feature_weather_from_metars import FitWeather
 
 
-def feature_thunder(flights,airports,metars,lvar,geo_scale,hour_scale):
+def feature_thunder(flights,airports,metars,geo_scale,hour_scale):
+    '''
+    Compute Thunder/fog features for the @flights using @metars on different spatio-temporal radius around the arrival @airports.
+    The ratio between the temporal and spatial scales are specified by @geo_scale and @hour_scale
+    '''
     df = flights.copy()#["flight_id"]
     for airport in ["adep","ades"]:
         df= pd.merge(df,airports[["icao_code","latitude_deg","longitude_deg"]],left_on=airport,right_on="icao_code",suffixes=('_adep','_ades'))
@@ -41,11 +45,10 @@ def main():
     parser.add_argument("-geo_scale",type=float)
     parser.add_argument("-hour_scale",type=float)
     args = parser.parse_args()
-    lvar = ["wxcodes"]
-    metars = pd.read_parquet(args.metars)[["lon","lat","valid"]+lvar]
+    metars = pd.read_parquet(args.metars)[["lon","lat","valid","wxcodes"]]
     airports = pd.read_parquet(args.airports)
     flights = readers.read_flights(args.f_in)#.head()
-    dfadded = feature_thunder(flights,airports,metars,lvar,args.geo_scale,args.hour_scale)
+    dfadded = feature_thunder(flights,airports,metars,args.geo_scale,args.hour_scale)
     return dfadded.to_parquet(args.f_out,index=False)
 if __name__ == '__main__':
     main()

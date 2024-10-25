@@ -20,10 +20,12 @@ from typing import (
 )
 
 def checktime(df):
+    ''' check that the sequence of datetimes in timestamp are increasing '''
     t = df.timestamp.values
     assert (t[1:]>t[:-1]).all()
 
 def isvar(v):
+    ''' test if a measurment @v is constant'''
     isnotnan = ~np.isnan(v)
     diffnotnan = np.logical_and(isnotnan[1:],isnotnan[:-1])
     diff = v[1:] != v[:-1]
@@ -31,6 +33,7 @@ def isvar(v):
 
 
 class FilterCstLatLon(filters.FilterBase):
+    ''' filter out measurments where latitude and longitude are constant'''
     def apply(self,df):
         df = df.copy()
         alt = df.altitude.values

@@ -10,9 +10,11 @@ import matplotlib.pyplot as plt
 
 
 def nointerpolate(x):
+    ''' identity function '''
     return x
 
 def read_trajectories(f, strategy):
+    ''' read a trajectory file named @f, and filters points using a @strategy'''
     df = pd.read_parquet(f)
     for v in ["flight_id"]:
         df[v] = df[v].astype(np.int64)
@@ -34,8 +36,7 @@ def read_trajectories(f, strategy):
 
 def main():
     parser = argparse.ArgumentParser(
-                    prog='trajs normalizer',
-                    description='sort points of each trajectory by date, and convert units to SI units, and store good dtype',
+        description='filter out measurements that are likely erroneous',
     )
     parser.add_argument("-t_in")
     parser.add_argument("-t_out")

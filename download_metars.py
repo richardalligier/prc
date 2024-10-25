@@ -2,18 +2,13 @@
 # MIT License
 
 
-"""
-Example script that scrapes data from the IEM ASOS download service.
-
-Requires: Python 3
-"""
-
 import datetime
 import utils
 from subprocess import call
 import os
 
 def download():
+    ''' donwload METARs files and stores them in the METAR folder as specified in the CONFIG and Makefile files'''
     start = datetime.datetime(2021, 12, 31)
     end = datetime.datetime(2023, 1, 2)
     step = datetime.timedelta(hours=24)

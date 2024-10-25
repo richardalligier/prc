@@ -7,6 +7,10 @@ import numpy as np
 from correct_date import compute_dates, fillnadates
 
 def feature_cruise_infos(trajs,cdates,nsplit):
+    '''
+    Computes features on temporal @nsplit slices of the trajectories in @trajs, using dates in @cdates
+    These features are basically statistics computed on points inside these slices
+    '''
     cdates["f_duration"] = (cdates.t_ades - cdates.t_adep).dt.total_seconds()
     dfjoined = trajs.join(cdates.set_index("flight_id"),on="flight_id",how="inner",validate="many_to_one")
     dfjoined["t"] = (dfjoined.timestamp - dfjoined.t_adep).dt.total_seconds()/(dfjoined.f_duration)

@@ -7,7 +7,10 @@ import numpy as np
 import utils
 from correct_date import compute_dates, fillnadates
 
-def add_wind_effect(trajs,cdates):
+def feature_wind_effect(trajs,cdates):
+    '''
+    Computes wind feature along the trajectories @trajs using corrected dates @cdates
+    '''
     dfjoined = trajs.join(cdates.set_index("flight_id"),on="flight_id",how="inner",validate="many_to_one")
     dfjoined = dfjoined.query("t_adep<=timestamp").query("timestamp<=t_ades")
     dfjoined["wind_effect"]= (dfjoined["gsx"] * dfjoined["u_component_of_wind"]+dfjoined["gsy"]* dfjoined["v_component_of_wind"])/dfjoined["groundspeed"]
@@ -18,6 +21,7 @@ def add_wind_effect(trajs,cdates):
 def main():
     import readers
     parser = argparse.ArgumentParser(
+        description='compute the feature of wind along the trajectory',
     )
     parser.add_argument("-f_in")
     parser.add_argument("-t_in")
@@ -29,7 +33,7 @@ def main():
     cdates = compute_dates(flights,pd.read_parquet(args.airports),trajs)
     cdates = fillnadates(flights,cdates)
     del flights
-    res = add_wind_effect(trajs,cdates)
+    res = feature_wind_effect(trajs,cdates)
     # print(res)
     res.to_parquet(args.f_out)#,index=False)
 if __name__ == '__main__':

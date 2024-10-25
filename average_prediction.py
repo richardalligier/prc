@@ -5,7 +5,7 @@ import utils
 import numpy as np
 
 def average_prediction(istart,istop):
-    ''' adds '''
+    """ averages model's prediction in the submission folder, starting from version @istart to @istop excluded """
     config = utils.read_config()
     fname = os.path.join(config.SUBMISSIONS_FOLDER,utils.get_submission_name(config))
     l = [pd.read_csv(fname.format(version=i)) for i in range(istart,istop)]
@@ -20,7 +20,7 @@ def average_prediction(istart,istop):
 def main():
     import readers
     parser = argparse.ArgumentParser(
-                    description='compute features related to cruise phase by computing stats on slices aligned on time',
+                    description="averages model's prediction in the submission folder, starting from version @istart to @istop excluded, results is dumped in @out_csv",
     )
     parser.add_argument("-istart",default=0,type=int)
     parser.add_argument("-istop",type=int)

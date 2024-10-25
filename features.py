@@ -10,6 +10,7 @@ from add_localtime import add_localtime
 FID = "flight_id"
 
 def sortedout(method):
+    ''' decorator to sort features'''
     @wraps(method)
     def _sortedout(self):
         # res = method(self)
@@ -19,6 +20,12 @@ def sortedout(method):
 
 
 class AllNumeric:
+    '''
+    From a dataframe file @fname use all its column, except flight_id, as numerical feature
+    The distinction between Scaled/not_scaled feature is not actually used.
+    It was tested but it was not conclusive.
+    Nonetheless, the idea is interesting, so the code is left as is for future tests.
+    '''
     def __init__(self, fname):
         super().__init__()
         self.fname = fname
@@ -35,6 +42,9 @@ class AllNumeric:
 
 
 class AllNumericNotScaled:
+    '''
+    From a dataframe file @fname use all its column, except flight_id, as numerical feature
+    '''
     def __init__(self, fname):
         super().__init__()
         self.fname = fname
@@ -50,6 +60,9 @@ class AllNumericNotScaled:
         return []
 
 class AllCategorical:
+    '''
+    From a dataframe file @fname use all its column, except flight_id, as categorical feature
+    '''
     def __init__(self, fname):
         super().__init__()
         self.fname = fname
@@ -65,10 +78,14 @@ class AllCategorical:
         return []
 
 def round_to_hour(time):
+    ''' from the datetime, computes the time in minutes of the day'''
 #    return (2*(time.dt.hour+time.dt.minute/60)).round().astype(np.int32)
     return 60 * time.dt.hour + time.dt.minute#)).round().astype(np.int32)
 
 class Flights:
+    '''
+    Class used to model the features extracted from the flights files
+    '''
     def __init__(self, config, what):
         fname = os.path.join(config.flights,f"{what}.parquet")
         self.fname = fname
@@ -106,6 +123,9 @@ class Flights:
 
 
 class Cruise(AllNumeric):
+    '''
+    Class used to model the features related to the cruise files
+    '''
     def __init__(self,fname):
         super().__init__(fname)
         prefix = "CruiseDeltaAlt_"
@@ -123,6 +143,9 @@ class Cruise(AllNumeric):
             print(self.data[f"CruiseMedianAlt_{i}"].unique())
 
 class Mass(AllNumeric):
+    '''
+    Class used to model the features related to the climbing files
+    '''
     def __init__(self,norange,scale,fname):
         super().__init__(fname)
         if "index" in list(self.data):
@@ -137,6 +160,9 @@ class Mass(AllNumeric):
 
 
 class Union:
+    '''
+    Class used to unify alll the features objects defined with above classes
+    '''
     def __init__(self,flights,lfeatures):
         self.data = flights.data#.copy()
         for i,features in enumerate(lfeatures):
@@ -156,6 +182,11 @@ class Union:
         return [y for x in self.lfeatures for y in  x.numeric_features()] + self.flights.numeric_features()
 
 def read_features(what):
+    '''
+    Return a Union object used to assemble all the features
+    It contains a dataframe of the features
+    And the names of the categorical/numerical features
+    '''
     config = utils.read_config()
     lfeatures = [
         Mass(norange=True,scale=True,fname=os.path.join(config.FOLDER_DATA,f"classic__1e-2__5_500_40_daltitude_1_-0.5_1_masses/{what}")),

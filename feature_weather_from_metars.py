@@ -6,6 +6,9 @@ from sklearn.neighbors import NearestNeighbors
 import numpy as np
 
 class FitWeather:
+    """
+    Fit a model that allows efficient spatio-temporal queries on a weather dataframe of spatio-temporal measurements
+    """
     def __init__(self,geo_scale,hour_scale):
         self.geo_scale = geo_scale
         self.hour_scale = hour_scale
@@ -35,6 +38,10 @@ class FitWeather:
         return self.model.kneighbors(self.scale(xdf),n_neighbors)
 
 def feature_weather(flights,airports,metars,lvar,geo_scale,hour_scale):
+    '''
+    Compute the weather variables @lvar for the @flights using the @metars closest to the airport at the datetime of interest.
+    The ratio between the temporal and spatial scales are specified by @geo_scale and @hour_scale
+    '''
     df = flights.copy()#["flight_id"]
     for airport in ["adep","ades"]:
         df= pd.merge(df,airports[["icao_code","latitude_deg","longitude_deg"]],left_on=airport,right_on="icao_code",suffixes=('_adep','_ades'))
