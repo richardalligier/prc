@@ -20,7 +20,7 @@ On a ThreadRipper
 1920X, one model takes ~65 minutes to train. Each model is a LightGBM
 model with 50,000 trees. As the training process involves
 randomness, averaging different models (hence different draws of the model)
-improves the results[¹]. In the final part of the challenge, we just trained models in the limited
+improves the results[^note1]. In the final part of the challenge, we just trained models in the limited
 time we had left, and averaged them.
 
 | number of model(s) averaged | RMSE on the final\_submission\_set [kg] | seed(s) | submission version |
@@ -154,7 +154,7 @@ This work uses external data in the public domain, namely:
 
 
 
-[¹]: Think of the bias-variance decomposition and its
+[^note1]: Think of the bias-variance decomposition and its
 usage in bagging. This decomposition is valid with randomness in
 general not just randomness introduced by bagging.
 
