@@ -158,6 +158,6 @@ This work uses external data in the public domain, namely:
 usage in bagging. This decomposition is valid with randomness in
 general not just randomness introduced by bagging.
 
-[^bignote]: Vanilla here refers to tree with simple where one variable is
+[^bignote]: "Vanilla" here refers to tree with simple split condition where one variable is
 compared to a constant threshold: $X_i<Threshold$
 
