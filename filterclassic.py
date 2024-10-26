@@ -45,6 +45,11 @@ class FilterCstLatLon(filters.FilterBase):
         return df
 
 def compute_holes(t,inans):
+    '''
+    Compute minimum time difference: dt[i]=min(t[i]-t[i-1],t[i+1]-t[i])
+    The trick is that the times @t at index @inans are ignored here,
+    so t[i+1] is actually the next valid time t and the same is true for t[i-1]
+    '''
     tnan = t.copy()
     tnan[inans] = np.nan
     tf = pd.DataFrame({"tf":tnan}, dtype=np.float64).ffill().values[:,0]
@@ -55,6 +60,9 @@ def compute_holes(t,inans):
     return dt
 
 class FilterIsolated(filters.FilterBase):
+    '''
+    Based on compute_holes, discard measurements that are separated by at least 20 seconds  from any other measurement
+    '''
     def apply(self,df):
         df = df.copy()
         lvar = [x for x in list(df) if x not in ["timestamp","icao24","flight_id"]]
@@ -68,6 +76,7 @@ class FilterIsolated(filters.FilterBase):
 
 
 class FilterCstPosition(filters.FilterBase):
+    ''' filter out measurments where altitude, latitude and longitude are constant'''
     def apply(self,df):
         df = df.copy()
         if df.shape[0]<=1:
@@ -83,6 +92,7 @@ class FilterCstPosition(filters.FilterBase):
 
 
 class FilterCstSpeed(filters.FilterBase):
+    ''' filter out measurments where vertical_rate, track and groundspeed are constant'''
     def apply(self,df):
         df = df.copy()
         if df.shape[0]<=1:
@@ -108,7 +118,10 @@ class MyFilterDerivative(filters.FilterBase):
     The method computes the absolute value of the 1st and 2nd derivatives
     of the parameters. If the value of the derivatives is above the defined
     threshold values, the datapoint is removed
-
+    Idea from FilterDerivative in Traffic but somewhat different:
+    -actual time are used to compute time differences
+    -use the actual 2nd derivative with no absolute value
+    -the discarding mechanism is also different
     """
 
     # default parameter values

@@ -26,6 +26,9 @@ from argparse import Namespace
 YVAR = "tow"
 
 class Predictor:
+    '''
+    Embedds the regresion model, and the target normalization
+    '''
     def __init__(self, norm_mass,model_params):
         self.norm_mass = norm_mass
         self.model_params=model_params
@@ -72,12 +75,14 @@ class Predictor:
 
 
 def assemble_sub(dfsub,ysub):
+    ''' used to generate the submission dataframe'''
     assert(not np.isnan(ysub).any())
     dfsub["tow"]=ysub
     return dfsub[["flight_id","tow"]]
 
 
 def preprocessor_flights(feat):
+    ''' Preprocessing of the features'''
     numeric_features = sorted(feat.numeric_features())
     numeric_features_not_scaled = sorted(feat.numeric_features_not_scaled())
     categorical_features = sorted(feat.categorical_features())
@@ -116,17 +121,20 @@ def preprocessor_flights(feat):
 
 
 def train_valid(random_state):
+    ''' returns a couple of training and validation set'''
     feat = features.read_features("challenge_set")
     dftrain, dftest = train_test_split(feat.data,test_size=0.2,random_state=random_state)
     feat.data = dftrain
     return feat, lambda : dftest
 
 def train_test(random_state):
+    ''' returns a couple of training and validation set'''
     feat = features.read_features("challenge_set")
     return feat, lambda : features.read_features("final_submission_set").data
 
 
 def valid(predictor, dftest):
+    ''' computes statistics using validation set'''
     test_rmse=predictor.valid_curve(dftest)
     best_test_rmse=min(test_rmse,key= lambda x:x[1])
     print(test_rmse)
@@ -147,6 +155,7 @@ def valid(predictor, dftest):
         print(f"test error |{month:<10}|{mask.sum():>10}|{loss:>10.0f}|")
 
 def submit(predictor, dftest, config):
+    ''' builds the submission'''
     ysub = predictor.predict(dftest)
     dfsubpred = assemble_sub(dftest, ysub)
     utils.write_submission(config, dfsubpred)

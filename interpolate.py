@@ -17,6 +17,9 @@ MAX_HOLE_SIZE = 20 # seconds
 DICO_HOLE_SIZE = {}
 
 def spline(t,v,smooth,derivative=False):
+    '''
+    Smoothing spline
+    '''
     isok = np.logical_not(np.isnan(v))
     if isok.sum()>2:
         cspline = csaps.csaps(xdata=t[isok],ydata=v[isok],smooth=smooth)#.spline
@@ -29,9 +32,12 @@ def spline(t,v,smooth,derivative=False):
         dv[:]=np.nan
         return v,dv
 
-# pd.DataFrame.interpolate does not use index values for the 'limit' parameter :-(
-# so I implement my own
+
 def compute_holes(t,inans):
+    '''
+    pd.DataFrame.interpolate does not use index values for the 'limit' parameter :-(
+    so I implement my own
+    '''
     tnan = t.copy()
     tnan[inans] = np.nan
     tf = pd.DataFrame({"tf":tnan}, dtype=np.float64).ffill().values
@@ -39,6 +45,10 @@ def compute_holes(t,inans):
     return tb - tf
 
 def interpolate(df,smooth):
+    '''
+    Smooth the different measurements using splines
+    does not interpolate between measurements separated by 20 seconds
+    '''
     t = ((df.timestamp - df.timestamp.iloc[0]) / pd.to_timedelta(1, unit="s")).values.astype(np.float64)
     df["t"] = t
     masknan = np.isnan(df["track"].values)
@@ -82,7 +92,7 @@ def interpolate(df,smooth):
 
 def main():
     parser = argparse.ArgumentParser(
-                    description='sort points of each trajectory by date, and convert units to SI units, and store good dtype',
+        description='Smooth the trajectory, and interpolate between measurements if they are not too distant',
     )
     parser.add_argument("-t_in",required=True)
     parser.add_argument("-t_out",required=True)

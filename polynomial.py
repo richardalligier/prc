@@ -2,19 +2,29 @@ import warnings
 import numpy as np
 
 def pad_rightmost_axis(a,pad_size):
+    '''
+    Used to pad the right-most dimension
+    '''
     pad_width = [(0,0)] * len(a.shape)
     pad_width[-1] = (0,pad_size)
     return np.pad(a,pad_width)
 
 def make_same_degrees(a,b):
+    '''
+    takes two Polynom objects and return
+    two Polynom objects that have the same size on the right-most dimension, the coeff dimension
+    '''
     da = a.degree()
     db = b.degree()
     if da > db: b = Polynomial(pad_rightmost_axis(b.coeffs,da-db))
     if db > da: a = Polynomial(pad_rightmost_axis(a.coeffs,db-da))
     return a,b
-# used to model a batch of polynomials
-# righ-most dimension is the coeffs dim, choice made to enable broadcast on it
+
 class Polynomial:
+    '''
+    used to model a batch of polynomials
+    righ-most dimension is the coeffs dim, choice made to enable broadcast on it
+    '''
     def __init__(self,coeffs):
         self.coeffs = coeffs
     def eval(self,x): # Horner formula

@@ -11,6 +11,9 @@ import numpy as np
 
 
 class ScoreDataBase:
+    '''
+    Used to lookup for already evaluated hyperparams
+    '''
     def __init__(self,fname,match,score):
         self.fname = fname
         self.match = match
@@ -30,6 +33,9 @@ class ScoreDataBase:
                 return self.score(d)
 
 class Grid:
+    '''
+    Grid of Hyperparams
+    '''
     def __init__(self, grid):
         self.grid = {k:list(v) for k,v in grid.items()}
     def to_coord(self,which):
@@ -63,6 +69,9 @@ class Grid:
 
 
 class GridRandom:
+    '''
+    Random draws of hyperparams
+    '''
     def __init__(self, grid):
         self.grid = grid
 
@@ -78,6 +87,10 @@ class GridRandom:
 
 
 def search(scoredb,grid,params,f):
+    '''
+    Can be use to perform a greedy optimization using a neighborhood
+    or can be used for a random search
+    '''
     while True:
         lparams = grid.random_neigh(params,nk=2)
         lres = []

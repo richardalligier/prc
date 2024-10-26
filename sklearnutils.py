@@ -7,6 +7,10 @@ from sklearn.preprocessing import PolynomialFeatures
 from sklearn.pipeline import make_pipeline
 
 class TargetIdentity:
+    '''
+    Not used in final submission
+    Does not scale target
+    '''
     def __init__(self, yvar):
         self.yvar = yvar
     def fit(self, df):
@@ -18,6 +22,10 @@ class TargetIdentity:
 
 
 class TargetStandardScaler(TargetIdentity):
+    '''
+    Not used in final submission
+    Standardscaler on target
+    '''
     def __init__(self, yvar):
         super().__init__(yvar)
         self.yscaler = StandardScaler()
@@ -31,6 +39,9 @@ class TargetStandardScaler(TargetIdentity):
 
 
 class TargetScaleByGroup(TargetIdentity):
+    '''
+    Scale target by group, typically aircraft_type
+    '''
     def __init__(self, yvar, by):
         super().__init__(yvar)
         self.by = by
@@ -56,6 +67,10 @@ class TargetScaleByGroup(TargetIdentity):
         return res
 
 class MassOewMtow(TargetScaleByGroup):
+    '''
+    !!!! Used in final submission !!!
+    Scale target according documented MTOW and EOW
+    '''
     def __init__(self, yvar, aircraft_type):
         super().__init__(yvar,aircraft_type)
         self.dmass = pd.read_csv("aircraft_type_masses.csv")
@@ -64,6 +79,10 @@ class MassOewMtow(TargetScaleByGroup):
             self.dscale[line[self.by]] = line.mtow - line.oew
 
 class MassStandardScalerByAircraft(TargetScaleByGroup):
+    '''
+    Not used in final submission
+    Scale target by group
+    '''
     def fit(self, df):
         dmean = {}
         dscale = {}
@@ -78,6 +97,11 @@ class MassStandardScalerByAircraft(TargetScaleByGroup):
 
 
 class LearnMassStandardScalerByAircraft(TargetScaleByGroup):
+    '''
+    Not used in final submission
+    Standardcaler target by group, but if not enough data, use regression model relating
+    documented MTOW and EOW to the observed mean and standard deviation
+    '''
     def fit(self, df):
         dmean = {}
         dscale = {}
@@ -114,6 +138,11 @@ class LearnMassStandardScalerByAircraft(TargetScaleByGroup):
 
 
 class GroupByTransformer(BaseEstimator, TransformerMixin):
+    '''
+    Not used in final submission
+    Standardcaler features by group, typically aircraft_type
+    but if not enough data, use aircraft_type synonym
+    '''
     def __init__(self, transformer,synonym, by=None):
         self.dtransformer = dict()
         self.transformer = transformer
@@ -154,70 +183,3 @@ class GroupByTransformer(BaseEstimator, TransformerMixin):
         return X.loc[:, self.cols]
     def get_feature_names_out(self,names):
         return [v for v in names if v!=self.by]
-
-def main(): # main function just here to test the above classes
-    import readers
-    import utils
-    from sklearn.preprocessing import StandardScaler, OrdinalEncoder
-    from sklearn.compose import ColumnTransformer
-    from sklearn.pipeline import Pipeline
-    import numpy as np
-    import matplotlib.pyplot as plt
-    import pandas as pd
-    config = utils.read_config()
-    df = readers.read_features("challenge")
-    for val in [ 'A310', 'B752', 'B773', 'C56X', 'E290']:
-        df = df.query("aircraft_type!=@val")
-    categorical_features = ["adep","ades","airline","aircraft_type","wtc","callsign","country_code_ades","country_code_adep","dayofweek","weekofyear"]
-    categorical_transformer = Pipeline(
-        steps=[
-            ("encoder", OrdinalEncoder(handle_unknown='use_encoded_value',unknown_value=-1,encoded_missing_value=-1,dtype=np.int32)),
-        ]
-    )
-    scale_by_group = "aircraft_type"
-    numeric_features = ["flight_duration","taxiout_time","flown_distance",] + [f"{v}{i}" for i in range(7) for v in ["mass_","masscount_"]]
-    numeric_transformer = Pipeline(
-        steps=[
-            ("scaler", GroupByTransformer(StandardScaler,by=scale_by_group)),#
-        ]
-    )
-    numeric_features_not_scaled = []
-
-    preprocessor = ColumnTransformer(
-        transformers=[
-            ("cat", categorical_transformer, categorical_features),
-            ("numeric", numeric_transformer, numeric_features+[scale_by_group]),
-            # ("numeric", StandardScaler(), numeric_features),
-            # ("unscalednumeric", StandardScaler(), numeric_features_not_scaled),
-        ],
-        remainder = "drop",
-    )
-    preprocessor.fit(df)
-    scaled = preprocessor.transform(df)
-    ynames = preprocessor.get_feature_names_out()
-    print(scaled.shape)
-    print(ynames)
-    print(len(ynames))
-    transformed = pd.DataFrame(data=scaled,columns=ynames)
-    # raise Exception
-    # print(pd.DataFrame(data=preprocessor.transform(df.query("aircraft_type=='A310'")),columns=ynames)[["numeric__mass_0"]])
-    # print(df.query("aircraft_type=='A310'")[["mass_0"]])
-    print(readers.read_features("challenge").groupby("aircraft_type").aircraft_type.count())
-    print(readers.read_features("submission").groupby("aircraft_type").aircraft_type.count())
-    # raise Exception
-    normass = NormalizeMass()
-    # print(df.query("aircraft_type=='C56X'")[["tow"]])
-    # raise Exception
-    df = df.query("aircraft_type!='C56X'")
-    for val in df.aircraft_type.unique():
-        trajs = df.query("aircraft_type==@val")
-        normed = normass.transform(trajs.aircraft_type,trajs.tow)
-        print(val,normed.min(),normed.max(),trajs.tow.mean(),trajs.tow.max())
-        plt.hist(normed,bins=30,density=True)
-        plt.show()
-        # plt.hist(trajs.tow.values,bins=30)#,density=True)
-
-    # plt.scatter(transformed.numeric__flight_duration,transformed.numeric__mass_0)
-    # plt.show()
-if __name__ == '__main__':
-    main()

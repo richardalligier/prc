@@ -3,6 +3,10 @@ import argparse
 import numpy as np
 
 def read_flights(f):
+    '''
+    Transform a flight csv into a flight parquet
+    Useful to speed-up read and also have correct dtypes
+    '''
     dates = ["date","actual_offblock_time","arrival_time"]
     ltypes = [
         ("string", ["adep","ades"]),#4

@@ -135,6 +135,7 @@ class Cruise(AllNumeric):
             isclimb =  self.data[f"CruiseDeltaAlt_{i}"] > 200
             isdescent = self.data[f"CruiseDeltaAlt_{i}"] < -200
             iscount = self.data[f"Cruisemachcount_{i}"] < 100
+            #iscount = self.data[f"Cruisemachcount_{i}"]/self.data["f_duration"]*nb<0.2
             self.data[f"CruiseMedianAlt_{i}"]= ((self.data[f"CruiseMedianAlt_{i}"]/1000).round())*1000
             for v in [f"CruiseMedianAlt_{i}",f"Cruisemach_{i}"]:
                 self.data.loc[isclimb,v]= -10000

@@ -5,6 +5,9 @@ import os
 
 
 def add_features_trajectories(df):
+    '''
+    add features on trajectories data
+    '''
     df = df.copy()
     # x east y north
     print("warning not using track_unwrapped")
@@ -26,6 +29,9 @@ def add_features_trajectories(df):
     )
 
 def applytransfo(df,lfactors,inverse=False):
+    '''
+    used to factorize code
+    '''
     ldf = list(df)
     for factor,lvar in lfactors:
         for v in lvar:
@@ -52,6 +58,8 @@ def convert_from_SI(df):
 
 
 def read_trajectories(f):
+    ''' read and convert trajectories to SI units
+    '''
     df = pd.read_parquet(f)
     for v in ["flight_id", "icao24"]:
         df[v] = df[v].astype(np.int64)
@@ -66,6 +74,9 @@ def add_features_flight(df):
         )
 
 def read_flights(f):
+    '''
+    read flights from parquet file
+    '''
     dates = ["date","actual_offblock_time","arrival_time"]
     ltypes = [
         ("string", ["adep","ades"]),#4
