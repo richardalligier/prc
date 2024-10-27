@@ -8,7 +8,7 @@ In order to predict the take-off weight, our model takes as input a number of ba
 
 The features extracted from ADS-B trajectories include:
 - several statistics on the rate of climb or descent (ROCD), the energy rate and an estimated "equivalent mass" obtained using an OpenAP, an open point-mass aircraft performance model, for a number of altitude "slices" of each trajectory,
-- the median Mach number, median altitude and altitude difference between the first and last point, for a number of temporal "slices" of the trajectory, capturing cruise informations,
+- the median Mach number, median altitude and altitude difference between the first and last point, for 20 temporal "slices" of the trajectory, capturing cruise informations,
 - the average wind along the trajectory.
 
 The features derived from METAR include the presence of thunderstorms or fog at the arrival airport or in an area around this airport, around the time of arrival.
@@ -27,6 +27,7 @@ time we had left, and averaged them.
 |----------------------------:|:---------------------------------------:|:---------|---------------------:|
 |                           1 | 1,612                                 |    0     |          20          |
 |                    10 | 1,564                                     |     0 to 9    |         21            |
+|                    20 | 1,561                                     |     0 to 19    |         25            |
 
 # To Reproduce the Results
 First setup your environment using the `environment.yml` file and edit the variable `FOLDER_DATA` in the `CONFIG` file, then just run the command below. Please be aware that it might take some time. To reduce this time depending on your computer you might want to use the option `-j` of `make`. For instance, `make -j4 cleantrajectories`, will launch 4 processes in parallel. In this whole project, each process takes no more than approximately 20GB of RAM. The only process that takes more is the training but this training phase does not use the `-j` of the `make` to run in parallel.

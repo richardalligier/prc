@@ -76,10 +76,10 @@ features: $(CRUISES) $(MASSES) $(WINDS)
 #$(WEATHERS) $(THUNDERS) $(WINDS)
 
 submissions:
-	for number in $(shell seq 0 9); do \
+	for number in $(shell seq 0 19); do \
 		python3 regression.py -what submit -random_state $$number -log log$$number; \
 	done;
-	python3 average_prediction -istop 10 -out_csv $(SUBMISSIONS_FOLDER)/averaged_10.csv
+	python3 average_prediction -istop 20 -out_csv $(SUBMISSIONS_FOLDER)/averaged_20.csv
 
 
 
