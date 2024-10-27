@@ -4,11 +4,11 @@ The objective of this challenge was to build an **open** Machine Learning model 
 # Overview of our method
 Our predictions are obtained by averaging the results of several gradient-boosted tree models, trained with different random seeds on the same data.
 
-In order to predict the take-off weight, our model takes as input a number of basic variables such as the departure and arrival airports, the airline, aircraft type, wake turbulence category, day of week, the flight duration, taxi-out time, flown distance, etc, and additionnal variables extracted from the ADS-B trajectories, and also weather data obtained from METAR. Prior to this feature extraction, the trajectories are filtered (see technical details below) and smoothed using cubic splines. 
+In order to predict the take-off weight, our model takes as input a number of basic variables such as the departure and arrival airports, the airline, aircraft type, wake turbulence category, day of week, the flight duration, taxi-out time, flown distance, etc, and additionnal variables extracted from the ADS-B trajectories, and also weather data obtained from METAR. Prior to this feature extraction, the trajectories are filtered (see technical details below) and smoothed using cubic splines.
 
 The features extracted from ADS-B trajectories include:
-- several statistics on the rate of climb or descent (ROCD), the energy rate and an estimated "equivalent mass" obtained using an open-access point-mass model of the aircraft, for a number of altitude "slices" of each trajectory,
-- the median Mach number, median altitude, and altitude difference between the first and last point, for a number of trajectory portions,
+- several statistics on the rate of climb or descent (ROCD), the energy rate and an estimated "equivalent mass" obtained using an OpenAP, an open point-mass aircraft performance model, for a number of altitude "slices" of each trajectory,
+- the median Mach number, median altitude and altitude difference between the first and last point, for a number of temporal "slices" of the trajectory, capturing cruise informations,
 - the average wind along the trajectory.
 
 The features derived from METAR include the presence of thunderstorms or fog at the arrival airport or in an area around this airport, around the time of arrival.
@@ -27,10 +27,9 @@ time we had left, and averaged them.
 |----------------------------:|:---------------------------------------:|:---------|---------------------:|
 |                           1 | 1,612                                 |    0     |          20          |
 |                    10 | 1,564                                     |     0 to 9    |         21            |
-|               right-aligned | $1                                      |         |                     |
 
 # To Reproduce the Results
-First edit the variable `FOLDER_DATA` in the `CONFIG` file, then just run the command below. Please be aware that it might take some time. To reduce this time depending on your computer you might want to use the option `-j` of `make`. For instance, `make -j4 cleantrajectories`, will launch 4 processes in parallel. In this whole project, each process takes no more than approximately 20GB of RAM. The only process that takes more is the training but this training phase does not use the `-j` of the `make` to run in parallel.
+First setup your environment using the `environment.yml` file and edit the variable `FOLDER_DATA` in the `CONFIG` file, then just run the command below. Please be aware that it might take some time. To reduce this time depending on your computer you might want to use the option `-j` of `make`. For instance, `make -j4 cleantrajectories`, will launch 4 processes in parallel. In this whole project, each process takes no more than approximately 20GB of RAM. The only process that takes more is the training but this training phase does not use the `-j` of the `make` to run in parallel.
 ```
 make download && make cleantrajectories && make features && make submissions
 ```

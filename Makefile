@@ -67,7 +67,7 @@ WEATHERS = $(foreach flight,$(FLIGHT_FILES), $(FOLDER_WEATHER)/$(flight).parquet
 THUNDERS = $(foreach flight,$(FLIGHT_FILES), $(FOLDER_THUNDER)/$(flight).parquet)
 
 
-download: $(FLIGHTS) $(foreach f,$(shell mc ls dc24/competition-data  | rev | cut -d' ' -f1 | rev | grep "parquet" | grep "2022-01-01"),$(FOLDER_RAW)/$(f)) $(METARS)
+download: $(FLIGHTS) $(foreach f,$(shell mc ls dc24/competition-data  | rev | cut -d' ' -f1 | rev | grep "parquet"),$(FOLDER_RAW)/$(f)) $(METARS)
 
 cleantrajectories: $(TRAJS)
 
@@ -76,10 +76,10 @@ features: $(CRUISES) $(MASSES) $(WINDS)
 #$(WEATHERS) $(THUNDERS) $(WINDS)
 
 submissions:
-	for number in $(shell seq 0 100); do \
+	for number in $(shell seq 0 9); do \
 		python3 regression.py -what submit -random_state $$number -log log$$number; \
 	done;
-	python3 average_prediction -istop 100 -out_csv $(SUBMISSIONS_FOLDER)/averaged_100.csv
+	python3 average_prediction -istop 10 -out_csv $(SUBMISSIONS_FOLDER)/averaged_10.csv
 
 
 
