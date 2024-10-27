@@ -2,7 +2,7 @@
 The objective of this challenge was to build an **open** Machine Learning model predicting the Take Off Weight (TOW) of an aircraft from its flight and trajectory information, more info at [PRC Challenge](https://ansperformance.eu/study/data-challenge/). Please bear in mind that **all** this repository (documentation included) was done during a competition and hence was done in a limited time.
 
 # Overview of our method
-Our predictions are obtained by averaging the results of several gradient-boosted tree models, trained with different random seeds on the same data.
+Our predictions are obtained by averaging the results of several gradient-boosted tree models, trained with different random seeds on the same data with the same hyperparameters.
 
 In order to predict the take-off weight, our model takes as input a number of basic variables such as the departure and arrival airports, the airline, aircraft type, wake turbulence category, day of week, the flight duration, taxi-out time, flown distance, etc, and additionnal variables extracted from the ADS-B trajectories, and also weather data obtained from METAR. Prior to this feature extraction, the trajectories are filtered (see technical details below) and smoothed using cubic splines.
 
