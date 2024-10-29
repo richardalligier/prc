@@ -150,7 +150,8 @@ This work builds on some external software:
 This work uses external data in the public domain, namely:
 - airports.csv file from [ourairports.com](https://ourairports.com)
 - metar files from [https://mesonet.agron.iastate.edu/ASOS/](https://mesonet.agron.iastate.edu/ASOS/)
-- aircraft_type_masses.csv built using OpenAP and wikipedia pages for the MTOW and EOW not filed in OpenAP.
+And data from projects with a permissive license:
+- aircraft_type_masses.csv built using [OpenAP](https://github.com/TUDelft-CNS-ATM/openap) (LGPLv3) data and wikipedia aircraft type's pages for the MTOW and EOW not filed in OpenAP.
 
 # Team
 The team is composed of two assistant professors from École Nationale de l'Aviation Civile ([ENAC](https://www.enac.fr/fr)):
