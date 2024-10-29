@@ -124,12 +124,7 @@ the aircraft type, a value of 1
 is associated with an heavy aircraft. Furthermore this aligns
 well with the predicted variable's scaling.
 
-<!-- This "scaling by group" principle should also -->
-<!-- be useful on other variables like the distance_flown for instance: a 1,500km trip is -->
-<!-- a short or long flight depending on the aircraft type, so scaling the -->
-<!-- distance flown according the aircraft type should make sense. This was -->
-<!-- tested with the ScaleByGroup class. Despite not being actually used -->
-<!-- this class was not deleted from the final code We left this in the final code, maybe -->
+This "scaling by group" principle should also be useful on other variables like the distance_flown for instance: a 1,500km trip is a short or long flight depending on the aircraft type, so scaling the distance flown according the aircraft type should make sense. This was tested with the `ScaleByGroup` class. Despite not being actually used this class was not deleted from the final code as we thought that it might be useful in later experiments by us or others.
 
 <!-- As the training process makes -->
 <!-- random choices to build the model, the model can be seen as a random -->
