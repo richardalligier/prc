@@ -71,8 +71,7 @@ download: $(FLIGHTS) $(foreach f,$(shell mc ls dc24/competition-data  | rev | cu
 
 cleantrajectories: $(TRAJS)
 
-features: $(CRUISES) $(MASSES) $(WINDS)
-# $(WEATHERS) $(THUNDERS)
+features: $(CRUISES) $(MASSES) $(WINDS) $(WEATHERS) $(THUNDERS)
 #$(WEATHERS) $(THUNDERS) $(WINDS)
 
 submissions:
