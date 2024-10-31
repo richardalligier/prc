@@ -1,6 +1,6 @@
 
-FOLDER_DATA = /disk3/prc
+FOLDER_DATA = /disk3/testprc
 
-SUBMISSIONS_FOLDER = /disk3/refprc/submissions
+SUBMISSIONS_FOLDER = /disk3/testprc/submissions
 
 JSON = /home/alligier/response_1724410156793.json

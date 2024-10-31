@@ -75,7 +75,7 @@ def main():
     metars = pd.read_parquet(args.metars)[["lon","lat","valid"]+lvar]
     airports = pd.read_parquet(args.airports)
     flights = readers.read_flights(args.f_in)
-    dfadded = add_weather(flights,airports,metars,lvar,args.geo_scale,args.hour_scale)
+    dfadded = feature_weather(flights,airports,metars,lvar,args.geo_scale,args.hour_scale)
     return dfadded.to_parquet(args.f_out,index=False)
 if __name__ == '__main__':
     main()
