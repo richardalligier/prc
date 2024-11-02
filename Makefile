@@ -75,10 +75,13 @@ features: $(CRUISES) $(MASSES) $(WINDS) $(WEATHERS) $(THUNDERS)
 #$(WEATHERS) $(THUNDERS) $(WINDS)
 
 submissions:
+	mkdir -p $(SUBMISSIONS_FOLDER)
 	for number in $(shell seq 0 19); do \
-		python3 regression.py -what submit -random_state $$number -log log$$number; \
+		python3 regression.py -what submit -random_state $$number; \
 	done;
-	python3 average_prediction -istop 20 -out_csv $(SUBMISSIONS_FOLDER)/averaged_20.csv
+	python3 average_prediction.py -istop 10 -out_csv $(SUBMISSIONS_FOLDER)/averaged_10.csv
+	python3 average_prediction.py -istop 20 -out_csv $(SUBMISSIONS_FOLDER)/averaged_20.csv
+
 
 
 
@@ -101,9 +104,13 @@ $(AIRPORTS): $(FLIGHTS)
 
 
 $(METARS): $(AIRPORTS)
-	mkdir -p $(FOLDER_DATA)/METARs
-	python3 download_metars.py
-	python3 metars_folder_to_parquet.py -metars_folder_in $(FOLDER_DATA)/METARs -metars_parquet_out $@
+	gdown 'https://drive.google.com/uc?export=download&id=1udmsuT317LECvr1JJNEmhdp0bM2OGq9W' -O $@
+	# uncomment below to generate it from scratch
+	# result might be different as mesonet's files might have been updated
+	# I've experienced one station's location update in a 2 weeks timespan
+	# mkdir -p $(FOLDER_DATA)/METARs
+	# python3 download_metars.py
+	# python3 metars_folder_to_parquet.py -metars_folder_in $(FOLDER_DATA)/METARs -metars_parquet_out $@
 
 $(FOLDER_WEATHER)/%.parquet: $(FOLDER_FLGT)/%.parquet $(AIRPORTS) $(METARS)
 	@mkdir -p $(@D)

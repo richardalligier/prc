@@ -60,6 +60,7 @@ dependencies:
 - xorg-libxrandr=1.5.4=hb9d3cd8_0
 - osqp=0.6.7.post0=py312h1d6d2e6_0
 - traitlets=5.14.3=pyhd8ed1ab_0
+- tomlkit=0.13.2=py312h06a4308_0
 - xorg-libxrender=0.9.11=hb9d3cd8_1
 - s2n=1.5.3=h7b32b05_0
 - zstd=1.5.6=ha6fb4c9_0
@@ -70,6 +71,7 @@ dependencies:
 - wrapt=1.16.0=py312h66e93f0_1
 - click=8.1.7=unix_pyh707e725_0
 - llvmlite=0.43.0=py312h374181b_1
+- filelock=3.16.1=pyhd8ed1ab_0
 - xcb-util=0.4.1=hb711507_2
 - jupyter_client=8.6.3=pyhd8ed1ab_0
 - referencing=0.35.1=pyhd8ed1ab_0
@@ -84,7 +86,10 @@ dependencies:
 - scikit-lego=0.9.1=pyhd8ed1ab_0
 - certifi=2024.8.30=pyhd8ed1ab_0
 - astor=0.8.1=pyh9f0ad1d_0
-- font-ttf-ubuntu=0.83=h77eed37_3
+- python-tzdata=2024.2=pyhd8ed1ab_0
+- scs=3.2.7=default_py312hfaafd5f_1
+- libre2-11=2023.09.01=hbbce691_3
+- argon2-cffi-bindings=21.2.0=py312h66e93f0_5
 - sparsehash=2.0.4=hcb278e6_1
 - fribidi=1.0.10=h36c2ea0_0
 - mpc=1.3.1=h24ddda3_1
@@ -112,9 +117,9 @@ dependencies:
 - mpfr=4.2.1=h90cbb55_3
 - at-spi2-core=2.40.3=h0630a04_0
 - azure-storage-common-cpp=12.8.0=ha3822c6_0
+- pylint=3.2.7=py312h06a4308_0
 - pandas=2.2.3=py312hf9745cd_1
 - ptyprocess=0.7.0=pyhd3deb0d_0
-- argon2-cffi-bindings=21.2.0=py312h66e93f0_5
 - tzdata=2024a=h8827d51_1
 - cuda-version=12.6=h7480c83_3
 - umap-learn=0.5.6=py312h7900ff3_1
@@ -136,14 +141,15 @@ dependencies:
 - qt6-main=6.7.2=hadfd74e_5
 - aws-crt-cpp=0.28.3=h469002c_5
 - pynndescent=0.5.13=pyhff2d567_0
-- python-dateutil=2.9.0=pyhd8ed1ab_0
 - libedit=3.1.20191231=he28a2e2_2
 - aws-checksums=0.1.20=h756ea98_0
 - wayland=1.23.1=h3e06ad9_0
 - openjpeg=2.5.2=h488ebb8_0
 - minizip=4.0.7=h401b404_0
 - pycparser=2.22=pyhd8ed1ab_0
+- dill=0.3.8=py312h06a4308_0
 - narwhals=1.9.0=pyhd8ed1ab_0
+- isort=5.13.2=py312h06a4308_0
 - libegl=1.7.0=ha4b6fd6_0
 - charset-normalizer=3.3.2=pyhd8ed1ab_0
 - pyzmq=26.2.0=py312hbf22597_2
@@ -156,7 +162,6 @@ dependencies:
 - jinja2=3.1.4=pyhd8ed1ab_0
 - libboost-python=1.86.0=py312hc39e661_2
 - tenacity=9.0.0=pyhd8ed1ab_0
-- bzip2=1.0.8=h4bc722e_7
 - branca=0.7.2=pyhd8ed1ab_0
 - libabseil=20240722.0=cxx17_h5888daf_1
 - wcwidth=0.2.13=pyhd8ed1ab_0
@@ -170,6 +175,7 @@ dependencies:
 - libgfortran=14.1.0=h69a702a_1
 - shapely=2.0.6=py312h391bc85_2
 - uvicorn=0.31.0=py312h7900ff3_0
+- font-ttf-ubuntu=0.83=h77eed37_3
 - xcb-util-wm=0.4.2=hb711507_0
 - aws-c-mqtt=0.10.6=h02abb05_0
 - libnsl=2.0.1=hd590300_0
@@ -188,6 +194,8 @@ dependencies:
 - libboost=1.86.0=hb8260a3_2
 - at-spi2-atk=2.38.0=h0630a04_3
 - libutf8proc=2.8.0=h166bdaf_0
+- python-dateutil=2.9.0=pyhd8ed1ab_0
+- gdown=5.2.0=pyhd8ed1ab_0
 - debugpy=1.8.6=py312h2ec8cdc_0
 - atk-1.0=2.38.0=h04ea711_2
 - typing-extensions=4.12.2=hd8ed1ab_0
@@ -222,7 +230,6 @@ dependencies:
 - xorg-libxcursor=1.2.2=hb9d3cd8_0
 - libarrow=17.0.0=h364f349_19_cpu
 - libdrm=2.4.123=hb9d3cd8_0
-- libre2-11=2023.09.01=hbbce691_3
 - cartopy=0.23.0=py312hf9745cd_2
 - ipympl=0.9.4=pyhd8ed1ab_0
 - libllvm14=14.0.6=hcd5def8_4
@@ -273,11 +280,11 @@ dependencies:
 - kiwisolver=1.4.7=py312h68727a3_0
 - cartes=0.8.0=pyhd8ed1ab_0
 - ncurses=6.5=he02047a_1
-- pyogrio=0.10.0=py312he8b4914_0
-- xcb-util-cursor=0.1.5=hb9d3cd8_0
 - libxcb=1.17.0=h8a09558_0
 - importlib_resources=6.4.5=pyhd8ed1ab_0
 - geopandas-base=1.0.1=pyha770c72_1
+- bzip2=1.0.8=h4bc722e_7
+- mccabe=0.7.0=pyhd3eb1b0_0
 - starlette=0.38.6=pyhd8ed1ab_0
 - freetype=2.12.1=h267a509_2
 - impunity=1.0.4=pyhd8ed1ab_0
@@ -287,6 +294,8 @@ dependencies:
 - expat=2.6.3=h5888daf_0
 - widgetsnbextension=4.0.13=pyhd8ed1ab_0
 - mysql-libs=9.0.1=he0572af_1
+- xcb-util-cursor=0.1.5=hb9d3cd8_0
+- pyogrio=0.10.0=py312he8b4914_0
 - traittypes=0.2.1=pyh9f0ad1d_2
 - libxkbcommon=1.7.0=h2c5496b_1
 - glog=0.7.1=hbabe93e_0
@@ -336,6 +345,7 @@ dependencies:
 - libarrow-acero=17.0.0=h5888daf_19_cpu
 - libevent=2.1.12=hf998b51_1
 - mapclassify=2.8.1=pyhd8ed1ab_0
+- astroid=3.2.4=py312h06a4308_0
 - krb5=1.21.3=h659f571_0
 - libclang-cpp19.1=19.1.0=default_hb5137d0_0
 - proj=9.5.0=h12925eb_0
@@ -409,6 +419,4 @@ dependencies:
 - glib-tools=2.82.1=h4833e2c_0
 - lz4-c=1.9.4=hcb278e6_0
 - pyjwt=2.9.0=pyhd8ed1ab_1
-- scs=3.2.7=default_py312hfaafd5f_1
-- python-tzdata=2024.2=pyhd8ed1ab_0
 

@@ -25,11 +25,36 @@ time we had left, and averaged them.
 
 | number of model(s) averaged | RMSE on the final\_submission\_set [kg] | seed(s) | submission version |
 |----------------------------:|:---------------------------------------:|:---------|---------------------:|
-|                           1 | 1,612                                 |    0     |          20          |
-|                    10 | 1,564                                     |     0 to 9    |         21            |
-|                    20 | 1,561                                     |     0 to 19    |         25            |
+|                           1 | 1,612.41                                 |    0     |          20          |
+|                    10 | 1,564.09                                     |     0 to 9    |         21            |
+|                    20 | 1,561.63                                     |     0 to 19    |         25            |
 
-# To Reproduce the Results
+# About the Reproducibility of the Results
+We could not reproduce the exact same result in the table above for at least two reasons:
+- The METARs files from mesonet
+  [https://mesonet.agron.iastate.edu/ASOS/](https://mesonet.agron.iastate.edu/ASOS/)
+  got updated, in a two weeks timespan, we experienced that one
+  station's location was updated.
+- The results above were obtained with `deterministic=False` (default
+  value for this parameter) which
+  does not guarantee that one obtain the same result when re-running
+  the exact same code on the same data.
+
+The first issue was solved by archiving the METARs. The second issue
+is "kind of" solved  as setting `deterministic=True` guarantee same
+results when re-running but only on the same "system", see
+  [https://lightgbm.readthedocs.io/en/latest/Parameters.html#deterministic](https://lightgbm.readthedocs.io/en/latest/Parameters.html#deterministic)
+  On my system I got this table below with the code on this
+  repository.
+
+| number of model(s) averaged | RMSE on the final\_submission\_set [kg] | seed(s) | submission version |
+|----------------------------:|:---------------------------------------:|:---------|---------------------:|
+|                           1 | 1,611.72                                 |    0     |          26          |
+|                    10 | 1,564.17                                     |     0 to 9    |         27            |
+|                    20 | 1,561.48                                     |     0 to 19    |         28            |
+
+
+# To Run the Code
 First setup your environment using the `environment.yml` file and edit the variable `FOLDER_DATA` in the `CONFIG` file, then just run the command below. Please be aware that it might take some time. To reduce this time depending on your computer you might want to use the option `-j` of `make`. For instance, `make -j4 cleantrajectories`, will launch 4 processes in parallel. In this whole project, each process takes no more than approximately 20GB of RAM. The only process that takes more is the training but this training phase does not use the `-j` of the `make` to run in parallel.
 ```
 make download && make cleantrajectories && make features && make submissions
