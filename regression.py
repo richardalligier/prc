@@ -120,17 +120,17 @@ def preprocessor_flights(feat):
     return categorical_features, numeric_features+numeric_features_not_scaled, preprocessor
 
 
-def train_valid(random_state):
+def train_valid(random_state,trainfile,testfile,prefixes,variables):
     ''' returns a couple of training and validation set'''
-    feat = features.read_features("challenge_set")
+    feat = features.read_features(trainfile,prefixes,variables)
     dftrain, dftest = train_test_split(feat.data,test_size=0.2,random_state=random_state)
     feat.data = dftrain
     return feat, lambda : dftest
 
-def train_test(random_state):
+def train_test(random_state,trainfile,testfile,prefixes,variables):
     ''' returns a couple of training and validation set'''
-    feat = features.read_features("challenge_set")
-    return feat, lambda : features.read_features("final_submission_set").data
+    feat = features.read_features(trainfile,prefixes,variables)
+    return feat, lambda : features.read_features(testfile,prefixes,variables).data
 
 
 def valid(predictor, dftest):
@@ -154,11 +154,11 @@ def valid(predictor, dftest):
         loss = root_mean_squared_error(dftest[YVAR].values[mask],ypred[mask])
         print(f"test error |{month:<10}|{mask.sum():>10}|{loss:>10.0f}|")
 
-def submit(predictor, dftest, config):
+def submit(predictor, dftest, config, args):
     ''' builds the submission'''
     ysub = predictor.predict(dftest)
     dfsubpred = assemble_sub(dftest, ysub)
-    utils.write_submission(config, dfsubpred)
+    utils.write_submission(config, dfsubpred,args)
 
 def convert(v):
     try:
@@ -175,6 +175,14 @@ def main():
                     description='',
     )
     parser.add_argument("-what",default="valid")
+    parser.add_argument("-train",default="train")
+    parser.add_argument("-submit",default="test_final")
+    parser.add_argument("-prefix_mass",required=True)
+    parser.add_argument("-prefix_cruise",required=True)
+    parser.add_argument("-prefix_wind",required=True)
+    parser.add_argument("-variables",required=True)
+    parser.add_argument("-scaler",required=True)
+    parser.add_argument("-folderout")
     parser.add_argument("-log",default="log_file")
     parser.add_argument("-random_state",default=0,type=int)
     args, unknown = parser.parse_known_args()
@@ -187,16 +195,52 @@ def main():
         "submit":train_test,
     }
     config = utils.read_config()
-    feat, fdftest = dsplitter[args.what](args.random_state)
+    prefixes = {"mass":args.prefix_mass,"cruise":args.prefix_cruise,"wind":args.prefix_wind}
+    feat, fdftest = dsplitter[args.what](args.random_state,args.train,args.submit,prefixes,args.variables)
     print(args)
-    model_params = {'boosting_type': 'gbdt', 'class_weight': None, 'colsample_bytree': 0.7368753029236468, 'importance_type': 'gain', 'learning_rate': 0.04347089639866006, 'max_depth': -1, 'min_child_samples': 460, 'min_child_weight': 0.0, 'min_split_gain': 0.0, 'n_estimators': 50000, 'n_jobs': None, 'num_leaves': 14, 'objective': None, 'random_state': args.random_state, 'reg_alpha': 400, 'reg_lambda': 500, 'subsample': 0.879814641620981, 'subsample_for_bin': 400000, 'subsample_freq': 5, 'device': 'cpu', 'verbose': 1, 'max_bin': 511, 'cat_l2': 450, 'cat_smooth': 150,"deterministic":True,"force_col_wise":True}
+    model_params = {
+        'boosting_type': 'gbdt', 
+        'class_weight': None, 
+        'colsample_bytree': 0.7368753029236468, 
+        'importance_type': 'gain', 
+        'learning_rate': 0.04347089639866006, 
+        'max_depth': -1, 
+        'min_child_samples': 460, 
+        'min_child_weight': 0.0, 
+        'min_split_gain': 0.0, 
+        'n_estimators': 50000, 
+        'n_jobs': None, 
+        'num_leaves': 14, 
+        'objective': None, 
+        'random_state': args.random_state, 
+        'reg_alpha': 400, 
+        'reg_lambda': 500, 
+        'subsample': 0.879814641620981, 
+        'subsample_for_bin': 400000, 
+        'subsample_freq': 5, 
+        'device': 'cpu', 
+        'verbose': 1, 
+        'max_bin': 511, 
+        'cat_l2': 450, 
+        'cat_smooth': 150,
+        "deterministic":True,
+        "force_col_wise":True
+    }
 #    model_params = {'boosting_type': 'gbdt', 'class_weight': None, 'colsample_bytree': 0.9983479969770903, 'importance_type': 'gain', 'learning_rate': 0.034044216343711194, 'max_depth': -1, 'min_child_samples': 360, 'min_child_weight': 0.0, 'min_split_gain': 0.0, 'n_estimators': 50000, 'n_jobs': None, 'num_leaves': 17, 'objective': None, 'random_state': 0, 'reg_alpha': 300, 'reg_lambda': 800, 'subsample': 0.9708398642260044, 'subsample_for_bin': 400000, 'subsample_freq': 100, 'device': 'cpu', 'verbose': 1, 'max_bin': 1023, 'cat_l2': 50, 'cat_smooth': 150}#, 'test_error': 1572.2932228357363}
     for k,v in unknown.items():
         if k in model_params:
             model_params[k]=v
         else:
             raise Exception(f"unknown args '-{k} {v}'")
-    predictor = Predictor(MassOewMtow(YVAR,"aircraft_type"),model_params)
+    if args.scaler == "mtow":
+        scaler = MassOewMtow(YVAR,"aircraft_type")
+    elif args.scaler == "identity":
+        scaler = TargetIdentity(YVAR)
+    elif args.scaler == "standard":
+        scaler = TargetStandardScaler(YVAR)
+    else:
+        raise Exception(f"-scaler {args.scaler} not recognised option")
+    predictor = Predictor(scaler,model_params)
     predictor.fit(feat)
     ypred = predictor.predict(feat.data)
     print("training error",root_mean_squared_error(feat.data[YVAR],ypred))
@@ -206,7 +250,7 @@ def main():
             loglog = {** log, **predictor.log}
             f.write(f"{loglog},")
     elif args.what == "submit":
-        submit(predictor,fdftest(),config)
+        submit(predictor,fdftest(),config,args)
     print({**log, **predictor.log})
 
 if __name__ == '__main__':

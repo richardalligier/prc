@@ -19,11 +19,18 @@ def read_trajectories(f, strategy):
     for v in ["flight_id"]:
         df[v] = df[v].astype(np.int64)
     df = df.drop_duplicates(["flight_id","timestamp"]).sort_values(["flight_id","timestamp"]).reset_index(drop=True)#.head(10_000)
-    if strategy == "classic":
+    if strategy == "likablejelly":
         filter = FilterCstLatLon()|FilterCstPosition()|FilterCstSpeed()|MyFilterDerivative()|FilterIsolated()
+    elif strategy in ['default', 'aggressive']:
+        filter = strategy
+    elif strategy == "nothing":
+        filter = None
     else:
         raise Exception(f"strategy '{strategy}' not implemented")
-    dftrafficin = Traffic(df).filter(filter=filter,strategy=nointerpolate).eval(max_workers=1).data
+    if filter is None:
+        dftrafficin = df.copy()
+    else:
+        dftrafficin = Traffic(df).filter(filter=filter,strategy=nointerpolate).eval(max_workers=1).data
     dico_tomask = {
         # "track":["track_unwrapped"],
         "latitude":["u_component_of_wind","v_component_of_wind","temperature"],

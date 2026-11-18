@@ -16,7 +16,7 @@ from correct_date import joincdates
 class WrapperOpenAP:
     """
     A wrapper to OpenAP that takes a dataframe as input, this allows to deal with SI/aeronautical units stuff
-    We also added a method to extract the drag as a second degree polynomial of the mass.
+    We also added a method to extract the drag as a secotempISA = isa.temperature(df.altitude)nd degree polynomial of the mass.
     """
     _dragsynonym = {
         "a21n":"a321",
@@ -63,7 +63,7 @@ class WrapperOpenAP:
         return self.thrust_model.descent_idle(tas=tas, alt=alt)
 
 
-def energy_rate(df,periods,thresh_dt):
+def energy_rate(df,periods,thresh_dt,wind_effect,temperature_effect):
     '''
     Computes energy rate from trajs fils @df considering pairs of points separated by @period points.
     Roughly speaking it computes (Energy(point i) - Energy(point i+@period))/(Timestamp(point i) - Timestamp(point i+@period)).
@@ -71,7 +71,7 @@ def energy_rate(df,periods,thresh_dt):
     This allows to treat all the trajectories altogether without considering one trajectory at a time.
     '''
     tempISA = isa.temperature(df.altitude)
-    tau = df.temperature / tempISA
+    tau = df.temperature / tempISA if temperature_effect else 1
     g_0 = 9.80665
     isdifferent = df.flight_id.shift(periods=periods) != df.flight_id
     dalt = df.altitude - df.altitude.shift(periods=periods)
@@ -80,7 +80,7 @@ def energy_rate(df,periods,thresh_dt):
     dt = (df.timestamp - df.timestamp.shift(periods=periods)).dt.total_seconds()
     dwx = df.u_component_of_wind - df.u_component_of_wind.shift(periods=periods)
     dwy = df.v_component_of_wind - df.v_component_of_wind.shift(periods=periods)
-    dewind = dwx * df.tasx + dwy * df.tasy
+    dewind = dwx * df.tasx + dwy * df.tasy if wind_effect else 0.
     e = (g_0 * dalt * tau + 0.5 * dtas2 + dewind) / dt
     e[isdifferent]=np.nan
     e[dt.abs() > thresh_dt]=np.nan
@@ -110,7 +110,7 @@ def total_energy_polynomial_equation(thrust,drag_poly,energy_rate,tas):
     power = (pthrust - pdrag) * ptas
     return power - penergy
 
-def compute_mass(df, is_climb,periods,thresh_dt,cthrust):
+def compute_mass(df, is_climb,periods,thresh_dt,cthrust,wind_effect,temperature_effect):
     '''
     Computes the mass as the largest root of the total energy polynom
     '''
@@ -131,25 +131,31 @@ def compute_mass(df, is_climb,periods,thresh_dt,cthrust):
         drag_poly_ac = apmodel.drag_polynomial(dfac)
         thrust[mask] = thrust_ac
         drag_poly[mask] = drag_poly_ac
-    e_rate = energy_rate(df,periods,thresh_dt)
+    e_rate = energy_rate(df,periods,thresh_dt,wind_effect=wind_effect,temperature_effect=temperature_effect)
     total_energy_poly = total_energy_polynomial_equation(thrust,drag_poly,e_rate,df.tas.values)
     sols =total_energy_poly.roots2()
     which = 0 # if is_climb else 1
     return pd.DataFrame({"masses":sols[:,which],"e_rate":e_rate},index=df.index)
 
 
-def feature_climbing(trajs, flights,threshold_vr,periods,thresh_dt,is_climb,cthrust,vrate_var,altstart,altstep):
+def feature_climbing(trajs, flights,threshold_vr,periods,thresh_dt,is_climb,cthrust,vrate_var,altstart,altstop,altstep,wind_effect,temperature_effect):
     ''' compute all the features to be added by this python code '''
     # flights["mid_flight_time"] = flights.actual_offblock_time + (flights.arrival_time-flights.actual_offblock_time) / 2
     flights["mid_flight_time"] = flights.t_adep + (flights.t_ades-flights.t_adep) / 2
     print(trajs.flight_id.nunique())
     dfjoinedin = trajs.join(flights.set_index("flight_id"),on="flight_id",how="inner",validate="many_to_one")
     print(dfjoinedin.flight_id.nunique())
-    dfjoinedin = dfjoinedin.merge(compute_mass(dfjoinedin,is_climb=is_climb,periods=periods,thresh_dt=thresh_dt,cthrust=cthrust),left_index=True,right_index=True)
+    dfjoinedin = dfjoinedin.merge(compute_mass(dfjoinedin,is_climb=is_climb,periods=periods,thresh_dt=thresh_dt,cthrust=cthrust,wind_effect=wind_effect,temperature_effect=temperature_effect),left_index=True,right_index=True)
     timecondition = "t_adep<=timestamp<mid_flight_time" if is_climb else "t_ades>timestamp>mid_flight_time"
     lvrcondition = [f"{vrate_var} > @threshold_vr",f"-@threshold_vr<= {vrate_var} <= @threshold_vr"] if is_climb else [f"{vrate_var} < @threshold_vr"]
-    lalts = [np.arange(altstart,48,altstep) * 1000 * utils.FEET2METER,[-10000,2000* utils.FEET2METER]]  if is_climb else [np.arange(altstart,48,altstep) * 1000 * utils.FEET2METER]
-    lprefix=["climb","takeoff"] if is_climb else ["descent"]
+    if is_climb:
+        lalts = [np.arange(altstart,altstop,altstep) * 1000 * utils.FEET2METER]
+        lprefix=["climb"]
+        lalts.append([-10000,2000* utils.FEET2METER])
+        lprefix.append("takeoff")
+    else:
+        lalts = [np.arange(altstart,altstop,altstep) * 1000 * utils.FEET2METER]
+        lprefix=["descent"]
     dfjoinedin = dfjoinedin.query(f"{timecondition}")# and {vrcondition}")
     print(dfjoinedin.flight_id.nunique())
     results = dfjoinedin[["flight_id","aircraft_type"]].drop_duplicates().reset_index(drop=True)
@@ -174,7 +180,7 @@ def feature_climbing(trajs, flights,threshold_vr,periods,thresh_dt,is_climb,cthr
     # iter different context climb/take_off or just descent
     for (alts,vrcondition,prefix) in zip(lalts,lvrcondition,lprefix):
         dfjoined = dfjoinedin.query(vrcondition)
-        # compute stats on slices
+        # compute stats on slicesmake -j6 features PREFIX_FILTER=likablejelly INTERPOL_SMOOTH=1e-2 CLMB_VRATE_VAR=daltitude VARIABLES=oemtwc SCALER=mtow CLMB_ALT_STEP=1 CRUISE_NSPLIT=20 WIND_ERATE=yes TEMP_ERATE=no
         for (i,(hlow,hhigh)) in enumerate(zip(alts[:-1],alts[1:])):
             grouped = dfjoined.query("@hlow <= altitude < @hhigh").groupby("flight_id")
             lresults.append(grouped.masses.median().rename(f"{prefix}mass_{i}"))
@@ -198,6 +204,13 @@ def main():
     parser = argparse.ArgumentParser(
                     description='compute climbing/mass features using altitude-wise slices',
     )
+    def noyestobool(x):
+        if x == "no":
+            return False
+        elif x =="yes":
+            return True
+        else:
+            raise Exception(f"{x} is not yes/no and cannot be converted")
     parser.add_argument("-f_in")
     parser.add_argument("-t_in")
     parser.add_argument("-f_out")
@@ -210,11 +223,14 @@ def main():
     parser.add_argument("-vrate_var",type=str)
     parser.add_argument("-altstep",type=float,help="in [FL]")
     parser.add_argument("-altstart",type=float,help="in [FL]")
+    parser.add_argument("-altstop",type=float,help="in [FL]")
+    parser.add_argument("-wind_effect",type=noyestobool)
+    parser.add_argument("-temperature_effect",type=noyestobool)
+    #parser.add_argument("-include_takeoff",type=noyestobool)
     args = parser.parse_args()
     args.threshold_vr = args.threshold_vr * utils.FEET2METER / 60
     trajs = readers.read_trajectories(args.t_in).reset_index()
     airports=pd.read_parquet(args.airports)
-
     trajs["latitude"]=trajs["latitude"] * 180 / np.pi
     trajs["longitude"]=trajs["longitude"] * 180 / np.pi
     trajs["altitude"]=trajs["altitude"] / utils.FEET2METER
@@ -231,7 +247,10 @@ def main():
                        cthrust = args.cthrust,
                        vrate_var=args.vrate_var,
                        altstart = args.altstart,
+                       altstop = args.altstop,
                        altstep = args.altstep,
+                       wind_effect = args.wind_effect,
+                       temperature_effect = args.temperature_effect,
     )
     return dfadded.reset_index().to_parquet(args.f_out,index=False)
 

@@ -33,7 +33,7 @@ class TargetStandardScaler(TargetIdentity):
         self.yscaler.fit(df[[self.yvar]])
         return self
     def transform(self, df):
-        return self.yscaler.transform(df[[self.yvar]])[:,0],None
+        return self.yscaler.transform(df[[self.yvar]])[:,0],self.yscaler.var_[0]
     def inverse_transform(self, df, yrawpred):
         return self.yscaler.inverse_transform(yrawpred[:,None])[:,0]
 

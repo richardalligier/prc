@@ -1,6 +1,9 @@
 
-FOLDER_DATA = /disk3/testprc
 
-SUBMISSIONS_FOLDER = /disk3/testprc/submissions
+FOLDER_DATA = /disk4/prc
 
-JSON = /home/alligier/response_1724410156793.json
+SUBMISSIONS_FOLDER = /disk4/prc/submissions
+
+DATAREPO = https://data.4tu.nl/v3/datasets/8cb8484b-dbe7-4750-8b87-a5b1dbc621b4/versions/2/ro-crate-metadata.json
+
+

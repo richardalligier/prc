@@ -1,0 +1,60 @@
+make -j6 features PREFIX_FILTER=nothing && make -j6 cleantrajectories PREFIX_FILTER=default && make -j6 cleantrajectories PREFIX_FILTER=aggressive && make -j6 features PREFIX_FILTER=default && make -j6 features PREFIX_FILTER=aggressive
+
+
+
+make -j6 features PREFIX_FILTER=nothing && make -j6 features PREFIX_FILTER=default && make -j6 features PREFIX_FILTER=aggressive && make -j6 features PREFIX_FILTER=likablejelly
+
+make submissions PREFIX_FILTER=nothing && make submissions PREFIX_FILTER=default && make submissions PREFIX_FILTER=aggressive && make submissions PREFIX_FILTER=likablejelly
+
+for i in 3 4 6 ; do
+    make -j6 features CLMB_PERIODS=$i
+    make submissions CLMB_PERIODS=$i
+done
+
+for i in 30 50 ; do
+    make -j6 features CLMB_THRESHOLD_DT=$i
+    make submissions CLMB_THRESHOLD_DT=$i
+done
+
+for i in 0.5 2 ; do
+    make -j6 features CLMB_ALT_STEP=$i
+    make submissions CLMB_ALT_STEP=$i
+done
+for i in 10 30 ; do
+    make -j6 features CRUISE_NSPLIT=$i
+    make submissions CRUISE_NSPLIT=$i
+done
+
+
+for i in 10 30 ; do
+    make -j6 features CRUISE_NSPLIT=$i
+    make submissions
+done
+
+
+make submissions VARIABLES=otwc ; make submissions VARIABLES=otwc SCALER=identity ; make -j6 features INTERPOL_SMOOTH=resample CLMB_VRATE_VAR=vertical_rate PREFIX_FILTER=default VARIABLES=otwc SCALER=identity CRUISE_NSPLIT=10 CLMB_ALT_STEP=10 ; make submissions INTERPOL_SMOOTH=resample CLMB_VRATE_VAR=vertical_rate PREFIX_FILTER=default VARIABLES=otwc SCALER=identity CRUISE_NSPLIT=10 CLMB_ALT_STEP=10; make submissions INTERPOL_SMOOTH=resample CLMB_VRATE_VAR=vertical_rate PREFIX_FILTER=default VARIABLES=otwc SCALER=identity ; make submissions INTERPOL_SMOOTH=resample CLMB_VRATE_VAR=vertical_rate PREFIX_FILTER=default ; make submissions INTERPOL_SMOOTH=1e-2 PREFIX_FILTER=default ; make submissions INTERPOL_SMOOTH=resample CLMB_VRATE_VAR=vertical_rate PREFIX_FILTER=default VARIABLES=otwc ; make submissions INTERPOL_SMOOTH=1e-2 CLMB_VRATE_VAR=daltitude PREFIX_FILTER=default VARIABLES=otwc ; make submissions VARIABLES=tw ; make submissions VARIABLES=c ; make submissions VARIABLES=o ;make submissions VARIABLES=m ; make submissions VARIABLES=e; make submissions CRUISE_NSPLIT=30 ; make submissions CRUISE_NSPLIT=10 ; make submissions CRUISE_NSPLIT=30 ; make submissions CLMB_ALT_STEP=0.5 ; make submissions CLMB_ALT_STEP=2 ;
+
+
+
+
+make submissions INTERPOL_SMOOTH=resample CLMB_VRATE_VAR=vertical_rate PREFIX_FILTER=default VARIABLES=tw
+make submissions INTERPOL_SMOOTH=resample CLMB_VRATE_VAR=vertical_rate PREFIX_FILTER=default VARIABLES=oemtwc ; make submissions INTERPOL_SMOOTH=resample CLMB_VRATE_VAR=vertical_rate PREFIX_FILTER=default VARIABLES=c ; make submissions INTERPOL_SMOOTH=resample CLMB_VRATE_VAR=vertical_rate PREFIX_FILTER=default VARIABLES=o ;make submissions INTERPOL_SMOOTH=resample CLMB_VRATE_VAR=vertical_rate PREFIX_FILTER=default VARIABLES=m ; make submissions INTERPOL_SMOOTH=resample CLMB_VRATE_VAR=vertical_rate PREFIX_FILTER=default VARIABLES=e ; make submissions INTERPOL_SMOOTH=resample CLMB_VRATE_VAR=vertical_rate PREFIX_FILTER=default VARIABLES=otwc
+
+
+make submissions VARIABLES=otwc ; make -j6 features INTERPOL_SMOOTH=resample CLMB_VRATE_VAR=vertical_rate PREFIX_FILTER=default VARIABLES=otwc SCALER=identity CRUISE_NSPLIT=10 CLMB_ALT_STEP=10 ; make submissions INTERPOL_SMOOTH=resample CLMB_VRATE_VAR=vertical_rate PREFIX_FILTER=default VARIABLES=otwc SCALER=identity CRUISE_NSPLIT=10 CLMB_ALT_STEP=10; make submissions INTERPOL_SMOOTH=resample CLMB_VRATE_VAR=vertical_rate PREFIX_FILTER=default VARIABLES=otwc SCALER=identity ; make submissions INTERPOL_SMOOTH=resample CLMB_VRATE_VAR=vertical_rate PREFIX_FILTER=default ; make submissions INTERPOL_SMOOTH=1e-2 PREFIX_FILTER=default ; make submissions INTERPOL_SMOOTH=resample CLMB_VRATE_VAR=vertical_rate PREFIX_FILTER=default VARIABLES=otwc ; make submissions INTERPOL_SMOOTH=1e-2 CLMB_VRATE_VAR=daltitude PREFIX_FILTER=default VARIABLES=otwc ; make submissions VARIABLES=tw ; make submissions VARIABLES=c ; make submissions VARIABLES=o ;make submissions VARIABLES=m ; make submissions VARIABLES=e; make submissions SCALER=identity
+
+
+
+/disk4/prc/submissions/likablejelly__1e-2_likablejelly__1e-2__5_500_40_vertical_rate_1_-0.5_1_likablejelly__1e-2__20_likablejelly__1e-2/submit-train-ranking_test_final-oemwtc-0-predictions.csv
+/disk4/prc/submissions/likablejelly__1e-2_likablejelly__1e-2__5_500_40_daltitude_1_-0.5_1_likablejelly__1e-2__20_likablejelly__1e-2
+/disk4/prc/submissions/likablejelly__1e-2_likablejelly__1e-2__5_500_40_daltitude_1_-0.5_1_likablejelly__1e-2__20_likablejelly__1e-2
+/disk4/prc/submissions/likablejelly__1e-2_likablejelly__1e-2__5_500_40_daltitude_1_-0.5_1_likablejelly__1e-2__20_likablejelly__1e-2/submit-train-ranking_test_final-oemwtc-0-predictions.csv
+/disk4/prc/submissions/likablejelly__1e-2_likablejelly__1e-2__5_500_40_daltitude_1_-0.5_1_likablejelly__1e-2__20_likablejelly__1e-2/submit-train-ranking_test_final-oemtwc-0-predictions.csv
+
+make submissions INTERPOL_SMOOTH=resample CLMB_VRATE_VAR=vertical_rate PREFIX_FILTER=default ; make submissions INTERPOL_SMOOTH=1e-2 CLMB_VRATE_VAR=daltitude PREFIX_FILTER=default ; make submissions VARIABLES=otwc ; make submissions VARIABLES=omtwc
+
+
+
+
+
+make submissions PREFIX_FILTER=likablejelly INTERPOL_SMOOTH=1e-2 CLMB_VRATE_VAR=daltitude VARIABLES=otwc SCALER=mtow CLMB_ALT_STEP=1 CRUISE_NSPLIT=20 ; make submissions PREFIX_FILTER=likablejelly INTERPOL_SMOOTH=1e-2 CLMB_VRATE_VAR=daltitude VARIABLES=o SCALER=mtow CLMB_ALT_STEP=1 CRUISE_NSPLIT=20 ; make submissions PREFIX_FILTER=likablejelly INTERPOL_SMOOTH=1e-2 CLMB_VRATE_VAR=daltitude VARIABLES=m SCALER=mtow CLMB_ALT_STEP=1 CRUISE_NSPLIT=20 ; make submissions PREFIX_FILTER=likablejelly INTERPOL_SMOOTH=1e-2 CLMB_VRATE_VAR=daltitude VARIABLES=oemtwc SCALER=mtow CLMB_ALT_STEP=0.5 CRUISE_NSPLIT=20 ; make submissions PREFIX_FILTER=likablejelly INTERPOL_SMOOTH=1e-2 CLMB_VRATE_VAR=daltitude VARIABLES=oemtwc SCALER=mtow CLMB_ALT_STEP=1 CRUISE_NSPLIT=20 ; make submissions PREFIX_FILTER=likablejelly INTERPOL_SMOOTH=1e-2 CLMB_VRATE_VAR=daltitude VARIABLES=oemtwc SCALER=mtow CLMB_ALT_STEP=1 CRUISE_NSPLIT=30 ; make submissions PREFIX_FILTER=likablejelly INTERPOL_SMOOTH=1e-2 CLMB_VRATE_VAR=daltitude VARIABLES=oemtwc SCALER=identity CLMB_ALT_STEP=1 CRUISE_NSPLIT=20 ; make submissions PREFIX_FILTER=likablejelly INTERPOL_SMOOTH=resample CLMB_VRATE_VAR=vertical_rate VARIABLES=oemtwc SCALER=mtow CLMB_ALT_STEP=1 CRUISE_NSPLIT=20 ; make submissions PREFIX_FILTER=likablejelly INTERPOL_SMOOTH=1e-2 CLMB_VRATE_VAR=daltitude VARIABLES=tw SCALER=mtow CLMB_ALT_STEP=1 CRUISE_NSPLIT=20 ; make submissions PREFIX_FILTER=likablejelly INTERPOL_SMOOTH=1e-2 CLMB_VRATE_VAR=daltitude VARIABLES=e SCALER=mtow CLMB_ALT_STEP=1 CRUISE_NSPLIT=20 ; make submissions PREFIX_FILTER=likablejelly INTERPOL_SMOOTH=1e-2 CLMB_VRATE_VAR=daltitude VARIABLES=oemtwc SCALER=mtow CLMB_ALT_STEP=1 CRUISE_NSPLIT=10 ; make submissions PREFIX_FILTER=likablejelly INTERPOL_SMOOTH=1e-2 CLMB_VRATE_VAR=daltitude VARIABLES=oemtwc SCALER=mtow CLMB_ALT_STEP=10 CRUISE_NSPLIT=10 ; make submissions PREFIX_FILTER=default INTERPOL_SMOOTH=resample CLMB_VRATE_VAR=vertical_rate VARIABLES=otwc SCALER=identity CLMB_ALT_STEP=1 CRUISE_NSPLIT=20 ; make submissions PREFIX_FILTER=default INTERPOL_SMOOTH=1e-2 CLMB_VRATE_VAR=daltitude VARIABLES=oemtwc SCALER=mtow CLMB_ALT_STEP=1 CRUISE_NSPLIT=20 ; make submissions PREFIX_FILTER=default INTERPOL_SMOOTH=resample CLMB_VRATE_VAR=vertical_rate VARIABLES=otwc SCALER=identity CLMB_ALT_STEP=10 CRUISE_NSPLIT=10 ; make submissions PREFIX_FILTER=likablejelly INTERPOL_SMOOTH=1e-2 CLMB_VRATE_VAR=daltitude VARIABLES=oemtwc SCALER=mtow CLMB_ALT_STEP=2 CRUISE_NSPLIT=20 ; make submissions PREFIX_FILTER=likablejelly INTERPOL_SMOOTH=1e-2 CLMB_VRATE_VAR=daltitude VARIABLES=c SCALER=mtow CLMB_ALT_STEP=1 CRUISE_NSPLIT=20 ; make submissions PREFIX_FILTER=default INTERPOL_SMOOTH=resample CLMB_VRATE_VAR=vertical_rate VARIABLES=oemtwc SCALER=mtow CLMB_ALT_STEP=1 CRUISE_NSPLIT=20

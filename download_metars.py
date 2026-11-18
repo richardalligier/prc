@@ -11,7 +11,7 @@ def download():
     ''' donwload METARs files and stores them in the METAR folder as specified in the CONFIG and Makefile files'''
     start = datetime.datetime(2021, 12, 31)
     end = datetime.datetime(2023, 1, 2)
-    step = datetime.timedelta(hours=24)
+    step = datetime.timedelta(minutes=10)
     config = utils.read_config()
     os.makedirs(config.METARs, exist_ok=True)
     now = start

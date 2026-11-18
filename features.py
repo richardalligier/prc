@@ -143,11 +143,21 @@ class Cruise(AllNumeric):
                 self.data.loc[iscount,v]= np.nan
             print(self.data[f"CruiseMedianAlt_{i}"].unique())
 
+def partition_variables(c,l):
+    matched = []
+    others = []
+    for x in l:
+        if c(x):
+            matched.append(x)
+        else:
+            others.append(x)
+    return matched,others
+
 class Mass(AllNumeric):
     '''
     Class used to model the features related to the climbing files
     '''
-    def __init__(self,norange,scale,fname):
+    def __init__(self,norange,scale,variables,fname):
         super().__init__(fname)
         if "index" in list(self.data):
             self.data=self.data.drop(columns="index")
@@ -158,6 +168,29 @@ class Mass(AllNumeric):
                     self.data[v]=(self.data[v]-self.data["mass_min"])/(self.data["mass_max"]-self.data["mass_min"])
         if norange:
             self.data = self.data.drop(columns=["mass_min","mass_max"])
+        energy,others = partition_variables(lambda x: "e_rate" in x, list(self.data))
+        masses,others =  partition_variables(lambda x: x.startswith("climbmass_") or x.startswith("takeoffmass_"), others)
+        takeoff_energy, climb_energy = partition_variables(lambda x: x.startswith("takeoff"), energy)
+        del energy
+        takeoff_masses, climb_masses = partition_variables(lambda x: x.startswith("takeoff"), masses)
+        del masses
+        selected = ["flight_id"]
+        others = [x for x in others if x not in selected]
+        d = {
+            "o":others,
+            "e":climb_energy,
+            "f":takeoff_energy,
+            "m":climb_masses,
+            "n":takeoff_masses,
+        }
+        for k,v in d.items():
+            if k in variables:
+                selected+=v
+        print(selected)
+        print(len(selected))
+        print(len(list(self.data)))
+        self.data=self.data[selected]
+            
 
 
 class Union:
@@ -165,7 +198,7 @@ class Union:
     Class used to unify alll the features objects defined with above classes
     '''
     def __init__(self,flights,lfeatures):
-        self.data = flights.data#.copy()
+        self.data = flights.data
         for i,features in enumerate(lfeatures):
             print(features.fname)
             self.data = self.data.join(features.data.set_index("flight_id"),on="flight_id",how="left")
@@ -182,19 +215,25 @@ class Union:
     def numeric_features(self):
         return [y for x in self.lfeatures for y in  x.numeric_features()] + self.flights.numeric_features()
 
-def read_features(what):
+def read_features(what,prefixes,variables):
     '''
     Return a Union object used to assemble all the features
     It contains a dataframe of the features
     And the names of the categorical/numerical features
     '''
+    dfeatures={
+        "t": lambda : AllNumericNotScaled(os.path.join(config.FOLDER_DATA,f"thunder/{what}.parquet")),
+        "w": lambda : AllNumericNotScaled(os.path.join(config.FOLDER_DATA,f"{prefixes['wind']}_wind/{what}")),
+        "c": lambda : Cruise(os.path.join(config.FOLDER_DATA,f"{prefixes['cruise']}_cruise/{what}")),
+    }
     config = utils.read_config()
-    lfeatures = [
-        Mass(norange=True,scale=True,fname=os.path.join(config.FOLDER_DATA,f"classic__1e-2__5_500_40_daltitude_1_-0.5_1_masses/{what}")),
-        AllNumericNotScaled(os.path.join(config.FOLDER_DATA,f"thunder/{what}.parquet")),
-        AllNumericNotScaled(os.path.join(config.FOLDER_DATA,f"classic__1e-2_wind/{what}")),
-        Cruise(os.path.join(config.FOLDER_DATA,f"classic__1e-2__20_cruise/{what}")),
-    ]
+    lfeatures = []
+    if "o" in variables or "m" in variables or "e" in variables:
+        lfeatures.append(Mass(norange=True,scale=True,variables=variables,fname=os.path.join(config.FOLDER_DATA,f"{prefixes['mass']}_masses/{what}")))
+    for k, loadf in dfeatures.items():
+        if k in variables:
+            lfeatures.append(loadf())
+    print(lfeatures)
     flights = Flights(config, what)
     feat = Union(flights, lfeatures)
     print(f"{feat.data.shape=}")

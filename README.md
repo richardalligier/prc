@@ -57,7 +57,7 @@ results when re-running but only on the same "system", see
 # To Run the Code
 First setup your environment using the `environment.yml` file and edit the variable `FOLDER_DATA` in the `CONFIG` file, then just run the command below. Please be aware that it might take some time. To reduce this time depending on your computer you might want to use the option `-j` of `make`. For instance, `make -j4 cleantrajectories`, will launch 4 processes in parallel. In this whole project, each process takes no more than approximately 20GB of RAM. The only process that takes more is the training but this training phase does not use the `-j` of the `make` to run in parallel.
 ```
-make download && make cleantrajectories && make features && make submissions
+make getdatarepojson && make download && make cleantrajectories && make features && make submissions
 ```
 # Technical Aspects
 In this Section you will find technical aspects and motivations for the code in this repository.
