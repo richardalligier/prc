@@ -182,6 +182,7 @@ def main():
     parser.add_argument("-prefix_wind",required=True)
     parser.add_argument("-variables",required=True)
     parser.add_argument("-scaler",required=True)
+    parser.add_argument("-save_model",default=None)
     parser.add_argument("-folderout")
     parser.add_argument("-log",default="log_file")
     parser.add_argument("-random_state",default=0,type=int)
@@ -251,6 +252,10 @@ def main():
             f.write(f"{loglog},")
     elif args.what == "submit":
         submit(predictor,fdftest(),config,args)
+    if args.save_model is not None:
+        pass
+        #todo
+
     print({**log, **predictor.log})
 
 if __name__ == '__main__':
