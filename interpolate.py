@@ -96,15 +96,25 @@ def main():
     )
     parser.add_argument("-t_in",required=True)
     parser.add_argument("-t_out",required=True)
-    parser.add_argument("-smooth",type=float,required=True)
+    parser.add_argument("-smooth",required=True)
     args = parser.parse_args()
     df = pd.read_parquet(args.t_in)
     # print(list(df))
     for v in ["flight_id", "icao24"]:
         df[v] = df[v].astype(np.int64)
-    df = readers.convert_from_SI(readers.add_features_trajectories(readers.convert_to_SI(df)))
-    df = df.groupby("flight_id").apply(lambda x:interpolate(x,args.smooth),include_groups=False).reset_index()
-    df.drop(columns="level_1").to_parquet(args.t_out,index=False)
+    #print(f"|{args.smooth}|")
+    if args.smooth == "resample":
+        df = readers.convert_from_SI(readers.add_features_trajectories(readers.convert_to_SI(df)))
+        df = Traffic(df).resample('1s')
+        df.to_parquet(args.t_out,index=False)
+    elif args.smooth == "nosmooth":
+        df = readers.convert_from_SI(readers.add_features_trajectories(readers.convert_to_SI(df)))
+        df.to_parquet(args.t_out,index=False)
+    else:
+        args.smooth = float(args.smooth)
+        df = readers.convert_from_SI(readers.add_features_trajectories(readers.convert_to_SI(df)))
+        df = df.groupby("flight_id").apply(lambda x:interpolate(x,args.smooth),include_groups=False).reset_index()
+        df.drop(columns="level_1").to_parquet(args.t_out,index=False)
 
 
 
